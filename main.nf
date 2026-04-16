@@ -45,7 +45,8 @@ workflow {
                 if (row.fastq_2 && row.fastq_2.toString().trim()) {
                     reads.add(file(row.fastq_2, checkIfExists: true))
                     meta.single_end = false
-                } else {
+                }
+                else {
                     meta.single_end = true
                 }
                 return [meta, reads]

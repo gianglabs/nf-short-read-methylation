@@ -1,5 +1,5 @@
 process BISMARK_DEDUPLICATE {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
@@ -9,16 +9,15 @@ process BISMARK_DEDUPLICATE {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("*.deduplicated.bam")        , emit: bam
+    tuple val(meta), path("*.deduplicated.bam"), emit: bam
     tuple val(meta), path("*.deduplication_report.txt"), emit: report
-    path  "versions.yml"                               , emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args    = task.ext.args ?: ''
-    def prefix  = task.ext.prefix ?: "${meta.id}"
+    def args = task.ext.args ?: ''
     def seqtype = meta.single_end ? '-s' : '-p'
     """
     deduplicate_bismark \\
@@ -33,7 +32,6 @@ process BISMARK_DEDUPLICATE {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.deduplicated.bam

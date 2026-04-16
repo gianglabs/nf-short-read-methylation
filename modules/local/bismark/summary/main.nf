@@ -5,21 +5,20 @@ process BISMARK_SUMMARY {
     container 'community.wave.seqera.io/library/bismark:0.25.1--1f50935de5d79c47'
 
     input:
-    val(bam)
-    path(align_report)
-    path(dedup_report)
-    path(splitting_report)
-    path(mbias)
+    val bam
+    path align_report
+    path dedup_report
+    path splitting_report
+    path mbias
 
     output:
-    path("*report.{html,txt}"), emit: summary
-    path "versions.yml"       , emit: versions
+    path ("*report.{html,txt}"), emit: summary
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
     """
     bismark2summary ${bam.join(' ')}
 
@@ -30,7 +29,6 @@ process BISMARK_SUMMARY {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     """
     touch bismark_summary_report.txt
     touch bismark_summary_report.html

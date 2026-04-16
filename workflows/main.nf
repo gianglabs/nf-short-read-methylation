@@ -53,8 +53,8 @@ workflow SHORT_READ_METHYLATION {
     // FASTQ mode: run full pipeline (alignment + preprocessing + variant calling)
     // BAM/CRAM mode: skip alignment and optional preprocessing, go directly to variant calling
     //
-    input_branched = input_ch.branch {
-        fastq: it[1] instanceof List && it[1][0].toString().endsWith('.fastq.gz')
+    input_branched = input_ch.branch { row ->
+        fastq: row[1] instanceof List && row[1][0].toString().endsWith('.fastq.gz')
     }
 
     //
@@ -67,10 +67,9 @@ workflow SHORT_READ_METHYLATION {
         ref_fasta,
         params.bismark_index ? channel.fromPath(params.bismark_index, checkIfExists: true) : null,
         params.skip_deduplication,
-        params.cytosine_report
+        params.cytosine_report,
     )
 
     BISMARK.out.versions.ifEmpty(channel.empty()).set { bismark_versions }
     ch_versions = ch_versions.mix(bismark_versions)
-
 }

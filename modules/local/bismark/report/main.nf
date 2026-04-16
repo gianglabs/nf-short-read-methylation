@@ -1,5 +1,5 @@
 process BISMARK_REPORT {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
@@ -10,7 +10,7 @@ process BISMARK_REPORT {
 
     output:
     tuple val(meta), path("*report.{html,txt}"), emit: report
-    path  "versions.yml"                       , emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,7 +27,6 @@ process BISMARK_REPORT {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.report.txt

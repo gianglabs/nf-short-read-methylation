@@ -1,5 +1,5 @@
 process BISMARK_COVERAGE2CYTOSINE {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_low'
 
     conda "${moduleDir}/environment.yml"
@@ -11,16 +11,15 @@ process BISMARK_COVERAGE2CYTOSINE {
     tuple val(meta3), path(index)
 
     output:
-    tuple val(meta), path("*.cov.gz")                      , emit: coverage,  optional: true
-    tuple val(meta), path("*report.txt.gz")                , emit: report
-    tuple val(meta), path("*cytosine_context_summary.txt") , emit: summary
-    path  "versions.yml"                                   , emit: versions
+    tuple val(meta), path("*.cov.gz"), emit: coverage, optional: true
+    tuple val(meta), path("*report.txt.gz"), emit: report
+    tuple val(meta), path("*cytosine_context_summary.txt"), emit: summary
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     coverage2cytosine \\
@@ -37,7 +36,6 @@ process BISMARK_COVERAGE2CYTOSINE {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     echo | gzip > ${prefix}.cov.gz
