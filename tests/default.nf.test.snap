@@ -153,7 +153,7 @@
                 "SRR389222_sub1_L001_trimmed_1_bismark_bt2.deduplicated_splitting_report.txt:md5,a22dee8f638015182b11ca2810ca8862",
                 "SRR389222_sub2_L001_trimmed_1_bismark_bt2.deduplicated_splitting_report.txt:md5,5d585a1ad62aa9afe9f77a5e44101b02",
                 "SRR389222_sub3_L001_trimmed_1_bismark_bt2.deduplicated_splitting_report.txt:md5,ef8b4232d49915ee3bfe451fcf31c43b",
-                "Ecoli_10K_methylated_L001_fastp.json:md5,2a912641399af7800458c725142c03d4",
+                "Ecoli_10K_methylated_L001_fastp.json:md5,fc7e5c0e22c6b764ecd8247bc38ade7d",
                 "Ecoli_10K_methylated_L001_trimmed_1.fastq.gz:md5,add2fdd04ca2fd69bcedfed97865a1bf",
                 "Ecoli_10K_methylated_L001_trimmed_2.fastq.gz:md5,96cefd56150503cce83ba0f06e2bef3b",
                 "SRR389222_sub1_L001_fastp.json:md5,7d875f7500917c6b187679d46ce9e0f6",
@@ -164,7 +164,7 @@
                 "SRR389222_sub3_L001_trimmed_1.fastq.gz:md5,5e8339b90ecb42becdbea34e334e84ac"
             ]
         ],
-        "timestamp": "2026-04-17T02:03:25.501655655",
+        "timestamp": "2026-04-17T02:22:46.842581477",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.10.4"

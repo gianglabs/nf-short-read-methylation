@@ -34,7 +34,6 @@ process FASTP_TRIM {
         --html ${prefix}_fastp.html \\
         --json ${prefix}_fastp.json \\
         --qualified_quality_phred 20 \\
-        --length_required 20 \\
         ${pe_adapter} \\
         ${args}
     

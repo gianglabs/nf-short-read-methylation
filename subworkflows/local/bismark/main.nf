@@ -1,4 +1,4 @@
-include { FASTP_TRIM } from '../../../modules/gianglabs/fastp/trim/main'
+include { FASTP_TRIM } from '../../../modules/local/fastp/trim/main'
 include { BISMARK_ALIGN } from '../../../modules/local/bismark/align/main'
 include { BISMARK_DEDUPLICATE } from '../../../modules/local/bismark/deduplicate/main'
 include { SAMTOOLS_SORT } from '../../../modules/local/samtools/sort/main'
