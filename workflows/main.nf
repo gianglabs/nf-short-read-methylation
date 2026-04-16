@@ -1,7 +1,7 @@
 // Include subworkflows
-include { ALIGNMENT } from '../subworkflows/gianglabs/alignment/main'
+include { BISMARK } from '../subworkflows/local/bismark/main'
 
-workflow WORKFLOW_TEMPLATE {
+workflow SHORT_READ_METHYLATION {
     take:
     input_ch // channel: 
 
@@ -21,38 +21,8 @@ workflow WORKFLOW_TEMPLATE {
             if (igenome_ref.dict) {
                 params.reference_dict = igenome_ref.dict
             }
-            if (igenome_ref.index_bwa2_reference) {
-                params.index_bwa2_reference = igenome_ref.index_bwa2_reference
-            }
-            if (igenome_ref.bwa2_index) {
-                params.bwa2_index = igenome_ref.bwa2_index
-            }
-            if (igenome_ref.dbsnp) {
-                params.dbsnp = igenome_ref.dbsnp
-            }
-            if (igenome_ref.dbsnp_tbi) {
-                params.dbsnp_tbi = igenome_ref.dbsnp_tbi
-            }
-            if (igenome_ref.known_indels) {
-                params.known_indels = igenome_ref.known_indels
-            }
-            if (igenome_ref.known_indels_tbi) {
-                params.known_indels_tbi = igenome_ref.known_indels_tbi
-            }
-            if (igenome_ref.snpeff_cache) {
-                params.snpeff_cache = igenome_ref.snpeff_cache
-            }
-            if (igenome_ref.vep_cache_version) {
-                params.vep_cache_version = igenome_ref.vep_cache_version
-            }
-            if (igenome_ref.vep_genome) {
-                params.vep_genome = igenome_ref.vep_genome
-            }
-            if (igenome_ref.vep_species) {
-                params.vep_species = igenome_ref.vep_species
-            }
-            if (igenome_ref.vep_cache) {
-                params.vep_cache = igenome_ref.vep_cache
+            if (igenome_ref.bismark_index) {
+                params.bismark_index = igenome_ref.bismark_index
             }
         }
     }
@@ -60,16 +30,13 @@ workflow WORKFLOW_TEMPLATE {
     log.info(
         """
     ==============================================================================================================================
-    nf-germline-short-read-variant-calling:
+    nf-short-read-methylation:
      - Nextflow Version
-     - Workflow                  : GATK_VARIANT_CALLING
-     - Subworkflows              : PREPROCESSING, VARIANT_CALLING, ANNOTATION
-     - Small Variant Caller      : ${params.small_variant_caller ? params.small_variant_caller : 'None'}
-     - Structural Variant Caller : ${params.structural_variant_caller ? params.structural_variant_caller : 'None'}
+     - Workflow                  : SHORT_READ_METHYLATION
+     - Subworkflows              : BISMARK
      - Loaded genomes set        : ${params.genome ? params.genome : 'None'}
      - Reference Genome          : ${params.reference}
-     - dbSNP VCF                 : ${params.dbsnp}
-     - Known Indels VCF          : ${params.known_indels}
+     - Bismark Index             : ${params.bismark_index ?: 'None'}
      - Input Samplesheet         : ${params.input}
      - Output Directory          : ${params.outdir}
     ==============================================================================================================================
@@ -79,16 +46,7 @@ workflow WORKFLOW_TEMPLATE {
     //
     // Prepare reference genome channels
     // Values from nextflow.config params block, override via CLI as needed
-    ref_fasta = channel.fromPath(params.reference, checkIfExists: true).collect()
-    ref_fai = channel.fromPath(params.reference_index, checkIfExists: true).collect()
-    ref_dict = channel.fromPath(params.reference_dict, checkIfExists: true).collect()
-
-    // Prepare known sites channels
-    // Values from nextflow.config params block, override via CLI as needed
-    dbsnp_vcf = channel.fromPath(params.dbsnp, checkIfExists: true).collect()
-    dbsnp_tbi = channel.fromPath(params.dbsnp_tbi, checkIfExists: true).collect()
-    known_indels_vcf = channel.fromPath(params.known_indels, checkIfExists: true).collect()
-    known_indels_tbi = channel.fromPath(params.known_indels_tbi, checkIfExists: true).collect()
+    ref_fasta = channel.fromPath(params.reference, checkIfExists: true)
 
     //
     // Detect input mode and branch accordingly
@@ -97,35 +55,22 @@ workflow WORKFLOW_TEMPLATE {
     //
     input_branched = input_ch.branch {
         fastq: it[1] instanceof List && it[1][0].toString().endsWith('.fastq.gz')
-        bam: it[1].toString().endsWith('.bam')
-        cram: it[1].toString().endsWith('.cram')
     }
 
     //
-    // SUBWORKFLOW: PREPROCESSING (Steps 1-3) - FASTQ ONLY
-    // Includes: FASTP, BWA-MEM2, Sorting, Merging
+    // SUBWORKFLOW: BISMARK - FASTQ ONLY
+    // Includes: FASTP, BISMARK alignment, deduplication, methylation extraction
     //
 
-    // Initialize empty channels for alignment output
-    ch_alignment_bam = channel.empty()
-    ch_alignment_bai = channel.empty()
-
-    // Call ALIGNMENT with fastq input - empty channel will cause it to exit early
-    ALIGNMENT(
+    BISMARK(
         input_branched.fastq,
         ref_fasta,
-        ref_fai,
-        ref_dict,
-        params.bwa2_index,
-        params.index_bwa2_reference,
+        params.bismark_index ? channel.fromPath(params.bismark_index, checkIfExists: true) : null,
+        params.skip_deduplication,
+        params.cytosine_report
     )
 
-    // Only mix versions from ALIGNMENT if it ran
-    ALIGNMENT.out.versions.ifEmpty(channel.empty()).set { align_versions }
-    ch_versions = ch_versions.mix(align_versions)
-
-    // Get alignment output or empty if no FASTQ input
-    ch_alignment_bam = ALIGNMENT.out.bam
-    ch_alignment_bai = ALIGNMENT.out.bai
+    BISMARK.out.versions.ifEmpty(channel.empty()).set { bismark_versions }
+    ch_versions = ch_versions.mix(bismark_versions)
 
 }
