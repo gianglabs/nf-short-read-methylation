@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
-include { WORKFLOW_TEMPLATE } from './workflows/main.nf'
+include { SHORT_READ_METHYLATION } from './workflows/main.nf'
 
 /*
 ========================================================================================
@@ -42,14 +42,20 @@ workflow {
                 // FASTQ mode: standard pipeline
                 def reads = []
                 reads.add(file(row.fastq_1, checkIfExists: true))
-                reads.add(file(row.fastq_2, checkIfExists: true))
+                if (row.fastq_2 && row.fastq_2.toString().trim()) {
+                    reads.add(file(row.fastq_2, checkIfExists: true))
+                    meta.single_end = false
+                }
+                else {
+                    meta.single_end = true
+                }
                 return [meta, reads]
             }
         }
         .set { ch_input }
 
 
-    WORKFLOW_TEMPLATE(
+    SHORT_READ_METHYLATION(
         ch_input
     )
 }

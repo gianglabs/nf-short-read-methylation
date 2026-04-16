@@ -1,5 +1,5 @@
 [workspace]
-name = "nf-workflow-template"
+name = "nf-short-read-methylation"
 version = "0.1.0"
 description = ""
 channels = ["conda-forge", "bioconda"]
