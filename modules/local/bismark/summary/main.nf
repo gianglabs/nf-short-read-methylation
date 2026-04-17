@@ -1,7 +1,6 @@
 process BISMARK_SUMMARY {
     label 'process_low'
 
-    conda "${moduleDir}/environment.yml"
     container 'community.wave.seqera.io/library/bismark:0.25.1--1f50935de5d79c47'
 
     input:

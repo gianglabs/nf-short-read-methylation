@@ -1,17 +1,14 @@
 process SAMTOOLS_INDEX {
     tag "${meta.id}"
-    label 'process_low'
+    label 'process_medium'
 
-    conda "${moduleDir}/environment.yml"
-    container 'quay.io/biocontainers/samtools:1.22.1--h96c455f_0'
+    container 'quay.io/biocontainers/samtools:1.17--hd87286a_2'
 
     input:
-    tuple val(meta), path(input)
+    tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("*.bai"), optional: true, emit: bai
-    tuple val(meta), path("*.csi"), optional: true, emit: csi
-    tuple val(meta), path("*.crai"), optional: true, emit: crai
+    tuple val(meta), path("*.bai"), emit: bai
     path "versions.yml", emit: versions
 
     when:
@@ -20,29 +17,14 @@ process SAMTOOLS_INDEX {
     script:
     def args = task.ext.args ?: ''
     """
-    samtools \\
-        index \\
-        -@ ${task.cpus} \\
-        ${args} \\
-        ${input}
+    samtools index \
+        -@ ${task.cpus} \
+        ${args} \
+        ${bam}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
-    """
-
-    stub:
-    def args = task.ext.args ?: ''
-    def extension = file(input).getExtension() == 'cram'
-        ? "crai"
-        : args.contains("-c") ? "csi" : "bai"
-    """
-    touch ${input}.${extension}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        samtools: \$(samtools --version | head -1 | sed 's/samtools //')
     END_VERSIONS
     """
 }

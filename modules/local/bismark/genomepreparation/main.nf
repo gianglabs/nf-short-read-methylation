@@ -2,7 +2,6 @@ process BISMARK_GENOMEPREPARATION {
     tag "${fasta}"
     label 'process_high'
 
-    conda "${moduleDir}/environment.yml"
     container 'community.wave.seqera.io/library/bismark:0.25.1--1f50935de5d79c47'
 
     input:
@@ -21,7 +20,9 @@ process BISMARK_GENOMEPREPARATION {
     def fasta_basename = fasta_name.endsWith('.gz') ? fasta_name.replaceAll(/\.gz$/, '') : fasta_name
     def stage_path = "BismarkIndex/${fasta_name}"
     def output_path = "BismarkIndex/${fasta_basename}"
-    def unpack_cmd = fasta_name.endsWith('.gz') ? "gzip -dc ${stage_path} > ${output_path}" : "ln -s ${stage_path} ${output_path}"
+    def unpack_cmd = fasta_name.endsWith('.gz')
+        ? "gzip -dc ${stage_path} > ${output_path}"
+        : "if [[ \"${stage_path}\" != \"${output_path}\" ]]; then ln -s -f ${stage_path} ${output_path}; fi"
     """
     ${unpack_cmd}
 
