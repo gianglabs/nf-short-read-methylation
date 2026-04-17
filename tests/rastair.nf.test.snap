@@ -1,0 +1,42 @@
+{
+    "rastair-fastq": {
+        "content": [
+            [
+                "bismark",
+                "bismark/deduplicated",
+                "bismark/deduplicated/Ecoli_10K_methylated_L001_sorted.bam",
+                "bismark/deduplicated/Ecoli_10K_methylated_sorted.bam",
+                "rastair",
+                "rastair/call",
+                "rastair/call/Ecoli_10K_methylated_L001.rastair_call.txt",
+                "rastair/mbias",
+                "rastair/mbias/Ecoli_10K_methylated_L001.rastair_mbias.txt",
+                "rastair/mbiasparser",
+                "rastair/mbiasparser/Ecoli_10K_methylated_L001.rastair_mbias_processed.csv",
+                "rastair/methylkit",
+                "rastair/methylkit/Ecoli_10K_methylated_L001.rastair_methylkit.txt.gz",
+                "trimgalore",
+                "trimgalore/fastqc",
+                "trimgalore/fastqc/Ecoli_10K_methylated_fastp.html",
+                "trimgalore/fastqc/Ecoli_10K_methylated_fastp.json",
+                "trimgalore/fastqc/Ecoli_10K_methylated_trimmed_1.fastq.gz",
+                "trimgalore/fastqc/Ecoli_10K_methylated_trimmed_2.fastq.gz"
+            ],
+            [
+                "Ecoli_10K_methylated_L001.rastair_call.txt:md5,23f789a8fe5a457e368f36e02a87ecb2",
+                "Ecoli_10K_methylated_L001.rastair_mbias.txt:md5,63f016218f9c85a24526a9e68c97c5b7",
+                "Ecoli_10K_methylated_L001.rastair_mbias_processed.csv:md5,e46ba9ffc77f03688559a3007e005d91",
+                "Ecoli_10K_methylated_L001.rastair_methylkit.txt.gz:md5,90fdfdb464f2a375c96bf64ea2d30445",
+                "Ecoli_10K_methylated_L001_sorted.bam:md5,41503fefa1af820ffb3eb8f8dd21062b",
+                "Ecoli_10K_methylated_sorted.bam:md5,4249fa05f09576c77319a1010892f1a6",
+                "Ecoli_10K_methylated_trimmed_1.fastq.gz:md5,add2fdd04ca2fd69bcedfed97865a1bf",
+                "Ecoli_10K_methylated_trimmed_2.fastq.gz:md5,96cefd56150503cce83ba0f06e2bef3b"
+            ]
+        ],
+        "timestamp": "2026-04-18T02:24:33.609617711",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}

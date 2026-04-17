@@ -1,0 +1,30 @@
+nextflow_pipeline {
+
+    name "Test pipeline rastair"
+    script "../main.nf"
+    tag "pipeline"
+    profile "test,docker"
+    test("rastair-fastq") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+                input = "/scratch/data/nf-short-read-methylation/tests/samplesheet_rastair.csv"
+            }
+        }
+
+        then {
+            def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}', '*.snap', 'bismark/methylation_calls/**'])
+                .sort()
+            def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+                .sort { a, b -> a.name <=> b.name }
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    stable_name,
+                    stable_path
+                ).match() }
+            )
+        }
+    }
+}
