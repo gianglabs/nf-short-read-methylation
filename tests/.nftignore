@@ -5,3 +5,7 @@ variant_annotation/**/*.{csv,html}
 bismark/alignments/logs/*.txt
 bismark/reports/*.html
 bismark/summary/*.txt
+rastair/mbiasparser/*.pdf
+trimgalore/fastqc/*.html
+trimgalore/fastqc/*.json
+bismark/methylation_calls/**/*

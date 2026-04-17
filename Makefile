@@ -5,27 +5,27 @@ ${HOME}/.pixi/bin/pixi:
 
 # snapshot
 # nf-test snapshot tests
-test-e2e: test-fastq-snapshot
+test-e2e: test-bismark-snapshot
 	echo "Execute entrypoint of test-fastq-snapshot"
 
 # nf-test snapshot tests
-test-fastq-snapshot: ${HOME}/.pixi/bin/pixi
+test-bismark-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
+			tests/bismark.nf.test \
 			--verbose \
-			--profile docker,test_fastq
+			--profile docker,bismark
 
 # Update nf-test snapshots
-test-fastq-update-snapshot: ${HOME}/.pixi/bin/pixi
+test-bismark-update-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
-			tests/default.nf.test \
+			tests/bismark.nf.test \
 			--verbose \
 			--update-snapshot \
-			--profile docker,test_fastq
+			--profile docker,bismark
 
-# FASTQ input test - full pipeline with alignment
-test-fastq: ${HOME}/.pixi/bin/pixi
+test-bismark: ${HOME}/.pixi/bin/pixi
 	${HOME}/.pixi/bin/pixi run nextflow run main.nf \
-		-profile docker,test_fastq \
+		-profile docker,bismark \
 		-resume
 # Lint
 lint: ${HOME}/.pixi/bin/pixi

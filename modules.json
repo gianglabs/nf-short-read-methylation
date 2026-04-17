@@ -15,10 +15,10 @@
             "git_sha": "23c80640acd80e9695f18182fadb947a2605c2da",
             "installed_by": ["alignment"]
           },
-          "fastp/trim": {
+          "gatkspark/markduplicates": {
             "branch": "main",
-            "git_sha": "2cefc6b6bde56d1548d341f44194456a0b994018",
-            "installed_by": ["alignment"]
+            "git_sha": "5745448939f2e37acab7a8481b46c5754cc864ca",
+            "installed_by": ["modules"]
           },
           "samtools/merge": {
             "branch": "main",
@@ -29,15 +29,6 @@
             "branch": "main",
             "git_sha": "5745448939f2e37acab7a8481b46c5754cc864ca",
             "installed_by": ["alignment"]
-          }
-        }
-      },
-      "subworkflows": {
-        "gianglabs": {
-          "alignment": {
-            "branch": "main",
-            "git_sha": "a12d78f3988485c81b17aad314cc3c5a06ce0fbe",
-            "installed_by": ["subworkflows"]
           }
         }
       }

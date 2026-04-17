@@ -17,7 +17,7 @@ process FASTP_TRIM {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.read_group}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     def paired = reads.size() == 2
     def in2 = paired ? "--in2 ${reads[1]}" : ''
     def out2 = paired ? "--out2 ${prefix}_trimmed_2.fastq.gz" : ''
