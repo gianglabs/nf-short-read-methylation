@@ -3,14 +3,12 @@ nextflow_pipeline {
     name "Test pipeline bismark"
     script "../main.nf"
     tag "pipeline"
-    profile "test,docker"
+    profile "bismark,docker"
     test("bismark-fastq") {
 
         when {
             params {
                 outdir = "$outputDir"
-                skip_rastair = true
-                input = "${projectDir}/assets/samplesheet_fastq.csv"
             }
         }
 

@@ -3,13 +3,12 @@ nextflow_pipeline {
     name "Test pipeline rastair"
     script "../main.nf"
     tag "pipeline"
-    profile "test,docker"
+    profile "rastair,docker"
     test("rastair-fastq") {
 
         when {
             params {
                 outdir = "$outputDir"
-                input = "/scratch/data/nf-short-read-methylation/tests/samplesheet_rastair.csv"
             }
         }
 
