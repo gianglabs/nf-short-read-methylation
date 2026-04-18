@@ -1,10 +1,10 @@
 nextflow_pipeline {
 
-    name "Test pipeline bismark"
+    name "Test pipeline rastair"
     script "../main.nf"
     tag "pipeline"
-    profile "bismark,docker"
-    test("bismark-fastq") {
+    profile "rastair,docker"
+    test("rastair-fastq") {
 
         when {
             params {

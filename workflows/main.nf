@@ -2,12 +2,17 @@
 // QC raw reads
 include { FASTP_TRIM } from '../modules/local/fastp/trim/main'
 include { SAMTOOLS_FAIDX } from '../modules/local/samtools/faidx/main'
+include { PICARD_CREATEREFERENCEDICT } from '../modules/local/picard/createreferencedict/main'
 
 // Alignment
+include { BWAMEM2_ALIGNMENT } from '../subworkflows/local/alignment/bwamem2/main'
+include { PREPROCESS_ALIGNMENT } from '../subworkflows/local/preprocess_alignment/main'
 include { BISMARK_ALIGNMENT } from '../subworkflows/local/alignment/bismark/main'
 
 // Methylation calling
 include { BISMARK_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/bismark/main'
+include { RASTAIR_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/rastair/main'
+
 
 workflow SHORT_READ_METHYLATION {
     take:
@@ -80,7 +85,49 @@ workflow SHORT_READ_METHYLATION {
     ch_versions = ch_versions.mix(FASTP_TRIM.out.versions)
 
     if (params.taps) {
-        log.info("Not support yet")
+        // the input data with modern transformation of methylation C-> T
+        ch_reference_fai = channel.empty()
+        if (params.reference_index) {
+            ch_reference_fai = channel.fromPath(params.reference_index, checkIfExists: true).collect()
+        }
+        else {
+            SAMTOOLS_FAIDX(ref_fasta)
+            ch_versions = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
+            ch_reference_fai = SAMTOOLS_FAIDX.out.fai
+        }
+
+        ch_reference_dict = channel.empty()
+        if (params.reference_dict) {
+            ch_reference_dict = channel.fromPath(params.reference_dict, checkIfExists: true).collect()
+        }
+        else {
+            PICARD_CREATEREFERENCEDICT(ref_fasta)
+            ch_versions = ch_versions.mix(PICARD_CREATEREFERENCEDICT.out.versions)
+            ch_reference_dict = PICARD_CREATEREFERENCEDICT.out.dict
+        }
+
+        BWAMEM2_ALIGNMENT(
+            ch_trimmed_reads,
+            ref_fasta,
+            ch_reference_fai,
+            ch_reference_dict,
+            params.bwa2_index,
+            params.index_bwa2_reference,
+        )
+        ch_versions = ch_versions.mix(BWAMEM2_ALIGNMENT.out.versions)
+
+        PREPROCESS_ALIGNMENT(
+            BWAMEM2_ALIGNMENT.out.bam,
+            ref_fasta,
+        )
+        ch_versions = ch_versions.mix(PREPROCESS_ALIGNMENT.out.versions)
+
+        RASTAIR_METHYLATION_CALLING(
+            PREPROCESS_ALIGNMENT.out.bam,
+            PREPROCESS_ALIGNMENT.out.bai,
+            ref_fasta,
+            ch_reference_fai,
+        )
     }
     else {
         // the input data with traditional transformation of methylation T-> C
