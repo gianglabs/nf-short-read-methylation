@@ -6,8 +6,8 @@ process BISMARK_ALIGN {
 
     input:
     tuple val(meta), path(reads)
-    tuple val(meta2), path(fasta, stageAs: 'tmp/*')
-    tuple val(meta3), path(index)
+    path(fasta)
+    path(index)
 
     output:
     tuple val(meta), path("*bam"), emit: bam
@@ -20,9 +20,7 @@ process BISMARK_ALIGN {
 
     script:
     def args = task.ext.args ?: ''
-    if (task.ext.prefix) {
-        args += " --prefix ${task.ext.prefix}"
-    }
+    args += " --prefix ${meta.read_group}"
     def fastq = meta.single_end ? reads : "-1 ${reads[0]} -2 ${reads[1]}"
 
     if (!args.contains('--multicore') && task.cpus) {

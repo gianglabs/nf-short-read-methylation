@@ -6,8 +6,11 @@ include { PICARD_CREATEREFERENCEDICT } from '../modules/local/picard/createrefer
 
 // Alignment
 include { BWAMEM2_ALIGNMENT } from '../subworkflows/local/alignment/bwamem2/main'
-include { PREPROCESS_ALIGNMENT } from '../subworkflows/local/preprocess_alignment/main'
 include { BISMARK_ALIGNMENT } from '../subworkflows/local/alignment/bismark/main'
+
+// Preprocess Alignment
+include { GATKSPARK_MARKDUPLICATES } from '../modules/gianglabs/gatkspark/markduplicates/main'
+include { BISMARK_DEDUPLICATE } from '../modules/local/bismark/deduplicate/main'
 
 // Methylation calling
 include { BISMARK_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/bismark/main'
@@ -62,13 +65,9 @@ workflow SHORT_READ_METHYLATION {
     def reference_path = params.reference.toString().endsWith('.gz')
         ? params.reference.toString().replaceAll(/\.gz$/, '')
         : params.reference
-    ref_fasta = channel.fromPath(reference_path, checkIfExists: true).collect()
+    ch_reference = channel.fromPath(reference_path, checkIfExists: true).collect()
 
-    //
-    // Detect input mode and branch accordingly
-    // FASTQ mode: run full pipeline (alignment + preprocessing + variant calling)
-    // BAM/CRAM mode: skip alignment and optional preprocessing, go directly to variant calling
-    //
+
     input_branched = input_ch.branch { row ->
         fastq: row[1] instanceof List && row[1][0].toString().endsWith('.fastq.gz')
     }
@@ -91,7 +90,7 @@ workflow SHORT_READ_METHYLATION {
             ch_reference_fai = channel.fromPath(params.reference_index, checkIfExists: true).collect()
         }
         else {
-            SAMTOOLS_FAIDX(ref_fasta)
+            SAMTOOLS_FAIDX(ch_reference)
             ch_versions = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
             ch_reference_fai = SAMTOOLS_FAIDX.out.fai
         }
@@ -101,14 +100,14 @@ workflow SHORT_READ_METHYLATION {
             ch_reference_dict = channel.fromPath(params.reference_dict, checkIfExists: true).collect()
         }
         else {
-            PICARD_CREATEREFERENCEDICT(ref_fasta)
+            PICARD_CREATEREFERENCEDICT(ch_reference)
             ch_versions = ch_versions.mix(PICARD_CREATEREFERENCEDICT.out.versions)
             ch_reference_dict = PICARD_CREATEREFERENCEDICT.out.dict
         }
 
         BWAMEM2_ALIGNMENT(
             ch_trimmed_reads,
-            ref_fasta,
+            ch_reference,
             ch_reference_fai,
             ch_reference_dict,
             params.bwa2_index,
@@ -116,16 +115,15 @@ workflow SHORT_READ_METHYLATION {
         )
         ch_versions = ch_versions.mix(BWAMEM2_ALIGNMENT.out.versions)
 
-        PREPROCESS_ALIGNMENT(
+        GATKSPARK_MARKDUPLICATES(
             BWAMEM2_ALIGNMENT.out.bam,
-            ref_fasta,
         )
-        ch_versions = ch_versions.mix(PREPROCESS_ALIGNMENT.out.versions)
+        ch_versions = ch_versions.mix(GATKSPARK_MARKDUPLICATES.out.versions)
 
         RASTAIR_METHYLATION_CALLING(
-            PREPROCESS_ALIGNMENT.out.bam,
-            PREPROCESS_ALIGNMENT.out.bai,
-            ref_fasta,
+            GATKSPARK_MARKDUPLICATES.out.bam,
+            GATKSPARK_MARKDUPLICATES.out.bai,
+            ch_reference,
             ch_reference_fai,
         )
     }
@@ -133,23 +131,23 @@ workflow SHORT_READ_METHYLATION {
         // the input data with traditional transformation of methylation T-> C
         BISMARK_ALIGNMENT(
             ch_trimmed_reads,
-            ref_fasta,
+            ch_reference,
             params.bismark_index ? channel.fromPath(params.bismark_index, checkIfExists: true) : null,
         )
+        ch_versions = ch_versions.mix(BISMARK_ALIGNMENT.out.versions)
 
-        BISMARK_ALIGNMENT.out.versions.ifEmpty(channel.empty()).set { bismark_alignment_versions }
-        ch_versions = ch_versions.mix(bismark_alignment_versions)
-
-        BISMARK_METHYLATION_CALLING(
-            BISMARK_ALIGNMENT.out.bam_name,
-            BISMARK_ALIGNMENT.out.alignment_reports,
-            BISMARK_ALIGNMENT.out.bam_raw,
-            ref_fasta,
-            BISMARK_ALIGNMENT.out.bismark_index,
-            params.cytosine_report,
+        BISMARK_DEDUPLICATE(
+            BISMARK_ALIGNMENT.out.bam
         )
-
-        BISMARK_METHYLATION_CALLING.out.versions.ifEmpty(channel.empty()).set { bismark_versions }
-        ch_versions = ch_versions.mix(bismark_versions)
+        ch_versions = ch_versions.mix(BISMARK_DEDUPLICATE.out.versions)
+        
+        BISMARK_METHYLATION_CALLING(
+            BISMARK_DEDUPLICATE.out.bam,
+            BISMARK_DEDUPLICATE.out.report,
+            ch_reference,
+            BISMARK_ALIGNMENT.out.index,
+        )
+        ch_versions = ch_versions.mix(BISMARK_METHYLATION_CALLING.out.versions)
     }
+    
 }

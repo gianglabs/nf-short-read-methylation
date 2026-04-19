@@ -6,7 +6,7 @@ process BISMARK_METHYLATIONEXTRACTOR {
 
     input:
     tuple val(meta), path(bam)
-    tuple val(meta2), path(index)
+    path(index)
 
     output:
     tuple val(meta), path("*.bedGraph.gz"), emit: bedgraph

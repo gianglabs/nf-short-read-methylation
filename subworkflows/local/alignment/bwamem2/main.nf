@@ -1,7 +1,6 @@
 include { BWAMEM2_INDEX } from '../../../../modules/gianglabs/bwamem2/index/main'
 include { BWAMEM2_MEM2 } from '../../../../modules/local/bwamem2/mem2/main'
-include { SAMTOOLS_SORT } from '../../../../modules/gianglabs/samtools/sort/main'
-include { SAMTOOLS_MERGE } from '../../../../modules/gianglabs/samtools/merge/main'
+include { SORT_MERGE_ALIGNMENT } from '../sort_merge/main'
 
 workflow BWAMEM2_ALIGNMENT {
     take:
@@ -44,33 +43,15 @@ workflow BWAMEM2_ALIGNMENT {
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM2.out.versions)
 
-    SAMTOOLS_SORT(
-        BWAMEM2_MEM2.out.bam
+    SORT_MERGE_ALIGNMENT(
+        BWAMEM2_MEM2.out.bam,
+        ref_fasta
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
-
-    SAMTOOLS_SORT.out.bam
-        .map { meta, bam ->
-            def new_meta = meta.clone()
-            new_meta.id = meta.read_group
-            return [new_meta.id, new_meta, bam]
-        }
-        .groupTuple()
-        .map { _sample_id, metas, bams ->
-            return [metas[0], bams]
-        }
-        .set { ch_bams_to_merge }
-
-    SAMTOOLS_MERGE(
-        ch_bams_to_merge,
-        ref_fasta,
-    )
-    ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions)
 
     emit:
-    bam = SAMTOOLS_MERGE.out.bam
-    bai = SAMTOOLS_MERGE.out.bai
-    cram = SAMTOOLS_MERGE.out.cram
-    crai = SAMTOOLS_MERGE.out.crai
+    bam = SORT_MERGE_ALIGNMENT.out.bam
+    bai = SORT_MERGE_ALIGNMENT.out.bai
+    cram = SORT_MERGE_ALIGNMENT.out.cram
+    crai = SORT_MERGE_ALIGNMENT.out.crai
     versions = ch_versions
 }

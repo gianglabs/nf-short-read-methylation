@@ -10,6 +10,7 @@ nextflow = ">=25.10.4,<26"
 nf-test = ">=0.9.4,<0.10"
 singularity = ">=3.8.6,<4"
 python = "3.11.*"
+bismark = ">=0.25.1,<0.26"
 
 [pypi-dependencies]
 nf-core = ">=3.5.2, <4"
