@@ -3,9 +3,9 @@ include { SAMTOOLS_MERGE } from '../../../../modules/gianglabs/samtools/merge/ma
 
 workflow SORT_MERGE_ALIGNMENT {
     take:
-    ch_bam  // channel (mandatory): [ val(meta), [ path(reads) ] ]
+    ch_bam // channel (mandatory): [ val(meta), [ path(reads) ] ]
     ref_fasta // path: reference FASTA
-    
+
     main:
     ch_versions = channel.empty()
 
@@ -18,8 +18,8 @@ workflow SORT_MERGE_ALIGNMENT {
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     ch_group_by_bam = SAMTOOLS_SORT.out.bam
-        .map { meta, bam -> 
-            [meta.id, meta, bam] 
+        .map { meta, bam ->
+            [meta.id, meta, bam]
         }
         .groupTuple(by: 0)
         .map { id, metas, bams ->
@@ -41,5 +41,4 @@ workflow SORT_MERGE_ALIGNMENT {
     cram = SAMTOOLS_MERGE.out.cram
     crai = SAMTOOLS_MERGE.out.crai
     versions = ch_versions
-
 }

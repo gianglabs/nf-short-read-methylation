@@ -116,7 +116,7 @@ workflow SHORT_READ_METHYLATION {
         ch_versions = ch_versions.mix(BWAMEM2_ALIGNMENT.out.versions)
 
         GATKSPARK_MARKDUPLICATES(
-            BWAMEM2_ALIGNMENT.out.bam,
+            BWAMEM2_ALIGNMENT.out.bam
         )
         ch_versions = ch_versions.mix(GATKSPARK_MARKDUPLICATES.out.versions)
 
@@ -140,7 +140,7 @@ workflow SHORT_READ_METHYLATION {
             BISMARK_ALIGNMENT.out.bam
         )
         ch_versions = ch_versions.mix(BISMARK_DEDUPLICATE.out.versions)
-        
+
         BISMARK_METHYLATION_CALLING(
             BISMARK_DEDUPLICATE.out.bam,
             BISMARK_DEDUPLICATE.out.report,
@@ -149,5 +149,4 @@ workflow SHORT_READ_METHYLATION {
         )
         ch_versions = ch_versions.mix(BISMARK_METHYLATION_CALLING.out.versions)
     }
-    
 }

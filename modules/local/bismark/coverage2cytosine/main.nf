@@ -6,8 +6,8 @@ process BISMARK_COVERAGE2CYTOSINE {
 
     input:
     tuple val(meta), path(coverage_file)
-    path(fasta, stageAs: 'tmp/*')
-    path(index)
+    path fasta, stageAs: 'tmp/*'
+    path index
 
     output:
     tuple val(meta), path("*.cov.gz"), emit: coverage, optional: true

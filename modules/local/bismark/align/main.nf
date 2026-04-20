@@ -6,8 +6,8 @@ process BISMARK_ALIGN {
 
     input:
     tuple val(meta), path(reads)
-    path(fasta)
-    path(index)
+    path fasta
+    path index
 
     output:
     tuple val(meta), path("*bam"), emit: bam

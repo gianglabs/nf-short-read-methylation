@@ -5,10 +5,10 @@ process BISMARK_GENOMEPREPARATION {
     container 'community.wave.seqera.io/library/bismark:0.25.1--1f50935de5d79c47'
 
     input:
-    path(fasta)
+    path fasta
 
     output:
-    path("BismarkIndex"), emit: index
+    path ("BismarkIndex"), emit: index
     path "versions.yml", emit: versions
 
     when:

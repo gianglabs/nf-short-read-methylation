@@ -35,7 +35,8 @@ process SAMTOOLS_SORT {
             samtools: \$(samtools --version | head -1 | sed 's/samtools //')
         END_VERSIONS
         """
-    } else {
+    }
+    else {
         """
         # Single BAM file: sort directly
         samtools sort \\

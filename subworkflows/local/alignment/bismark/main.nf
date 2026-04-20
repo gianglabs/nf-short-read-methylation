@@ -29,15 +29,15 @@ workflow BISMARK_ALIGNMENT {
     BISMARK_ALIGN(
         ch_reads,
         ch_reference,
-        BISMARK_GENOMEPREPARATION.out.index
+        BISMARK_GENOMEPREPARATION.out.index,
     )
     ch_versions = ch_versions.mix(BISMARK_ALIGN.out.versions_bismark)
 
     ch_bam = BISMARK_ALIGN.out.bam
     BISMARK_SUMMARY_ALIGNMENT(
-        ch_bam.collect{ meta, _bam -> meta.id +"_SE_report.txt" },
-        ch_bam.collect{ meta, _bam -> meta.id +".bam" },
-        BISMARK_ALIGN.out.report.collect{ _meta, report -> report },
+        ch_bam.collect { meta, _bam -> meta.id + "_SE_report.txt" },
+        ch_bam.collect { meta, _bam -> meta.id + ".bam" },
+        BISMARK_ALIGN.out.report.collect { _meta, report -> report },
         [],
         [],
         [],
@@ -47,7 +47,6 @@ workflow BISMARK_ALIGNMENT {
     SORT_MERGE_ALIGNMENT(BISMARK_ALIGN.out.bam, ch_reference)
     ch_versions = ch_versions.mix(SORT_MERGE_ALIGNMENT.out.versions)
 
-    
     emit:
     bam = SORT_MERGE_ALIGNMENT.out.bam
     bam_raw = BISMARK_ALIGN.out.bam

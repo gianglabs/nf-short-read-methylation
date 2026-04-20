@@ -47,9 +47,9 @@ workflow BISMARK_METHYLATION_CALLING {
 
     // Summary 
     BISMARK_SUMMARY_SAMPLE(
-        ch_bam.collect{ meta, _bam -> meta.id +"_SE_report.txt" },
-        ch_bam.collect{ meta, _bam -> meta.id +".bam" },
-        [], // ignore the alignment report, check on each lane/run file,
+        ch_bam.collect { meta, _bam -> meta.id + "_SE_report.txt" },
+        ch_bam.collect { meta, _bam -> meta.id + ".bam" },
+        [],
         ch_dedup_report.collect { _meta, dedup_report -> dedup_report },
         ch_methylation_report.collect { _meta, report -> report },
         ch_methylation_mbias.collect { _meta, mbias -> mbias },

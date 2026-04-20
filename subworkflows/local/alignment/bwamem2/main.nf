@@ -45,7 +45,7 @@ workflow BWAMEM2_ALIGNMENT {
 
     SORT_MERGE_ALIGNMENT(
         BWAMEM2_MEM2.out.bam,
-        ref_fasta
+        ref_fasta,
     )
 
     emit:
