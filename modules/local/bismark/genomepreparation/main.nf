@@ -5,10 +5,10 @@ process BISMARK_GENOMEPREPARATION {
     container 'community.wave.seqera.io/library/bismark:0.25.1--1f50935de5d79c47'
 
     input:
-    tuple val(meta), path(fasta, stageAs: 'BismarkIndex/*')
+    path fasta
 
     output:
-    tuple val(meta), path("BismarkIndex"), emit: index
+    path ("BismarkIndex"), emit: index
     path "versions.yml", emit: versions
 
     when:
@@ -18,11 +18,9 @@ process BISMARK_GENOMEPREPARATION {
     def args = task.ext.args ?: ''
     def fasta_name = file(fasta).getName()
     def fasta_basename = fasta_name.endsWith('.gz') ? fasta_name.replaceAll(/\.gz$/, '') : fasta_name
-    def stage_path = "BismarkIndex/${fasta_name}"
-    def output_path = "BismarkIndex/${fasta_basename}"
     def unpack_cmd = fasta_name.endsWith('.gz')
-        ? "gzip -dc ${stage_path} > ${output_path}"
-        : "if [[ \"${stage_path}\" != \"${output_path}\" ]]; then ln -s -f ${stage_path} ${output_path}; fi"
+        ? "gzip -dc ${fasta} > ${fasta_basename} && mkdir -p BismarkIndex && mv ${fasta_basename} BismarkIndex/"
+        : "mkdir -p BismarkIndex && cp ${fasta} BismarkIndex/${fasta_basename}"
     """
     ${unpack_cmd}
 

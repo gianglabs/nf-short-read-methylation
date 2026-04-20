@@ -15,20 +15,41 @@ process SAMTOOLS_SORT {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = "${meta.read_group}"
 
-    """
-    # Sort BAM file by coordinates
-    samtools sort \\
-        -@ ${task.cpus} \\
-        ${args} \\
-        -o ${prefix}_sorted.bam \\
-        ${bam}
-    
-    # Create versions file
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(samtools --version | head -1 | sed 's/samtools //')
-    END_VERSIONS
-    """
+    // Handle both single BAM file and list of BAM files
+    if (bam instanceof List && bam.size() > 1) {
+        """
+        # Multiple BAM files: concatenate and sort
+        samtools cat \\
+            ${bam.join(' ')} \\
+            | samtools sort \\
+            -@ ${task.cpus} \\
+            ${args} \\
+            -o ${prefix}_sorted.bam \\
+            -
+        
+        # Create versions file
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            samtools: \$(samtools --version | head -1 | sed 's/samtools //')
+        END_VERSIONS
+        """
+    }
+    else {
+        """
+        # Single BAM file: sort directly
+        samtools sort \\
+            -@ ${task.cpus} \\
+            ${args} \\
+            -o ${prefix}_sorted.bam \\
+            ${bam}
+        
+        # Create versions file
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            samtools: \$(samtools --version | head -1 | sed 's/samtools //')
+        END_VERSIONS
+        """
+    }
 }

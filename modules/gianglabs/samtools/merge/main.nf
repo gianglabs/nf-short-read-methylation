@@ -8,10 +8,10 @@ process SAMTOOLS_MERGE {
     path ref_fasta
 
     output:
-    tuple val(meta), path("*_merged.bam"), emit: bam
-    tuple val(meta), path("*_merged.bam.bai"), emit: bai
-    tuple val(meta), path("*_merged.cram"), emit: cram
-    tuple val(meta), path("*_merged.cram.crai"), emit: crai
+    tuple val(meta), path("*.bam"), emit: bam
+    tuple val(meta), path("*.bam.bai"), emit: bai
+    tuple val(meta), path("*.cram"), emit: cram
+    tuple val(meta), path("*.cram.crai"), emit: crai
     path "versions.yml", emit: versions
 
     when:
@@ -32,26 +32,26 @@ process SAMTOOLS_MERGE {
         samtools merge \\
             -@ ${task.cpus} \\
             ${args} \\
-            ${prefix}_merged.bam \\
+            ${prefix}.bam \\
             ${bams.join(' ')}
         
         # Index the merged BAM
         samtools index \\
             -@ ${task.cpus} \\
-            ${prefix}_merged.bam
+            ${prefix}.bam
         
         # Also create CRAM version for storage
         samtools view \\
             -@ ${task.cpus} \\
             -T ${ref_fasta} \\
             -C \\
-            -o ${prefix}_merged.cram \\
-            ${prefix}_merged.bam
+            -o ${prefix}.cram \\
+            ${prefix}.bam
         
         # Index the CRAM
         samtools index \\
             -@ ${task.cpus} \\
-            ${prefix}_merged.cram
+            ${prefix}.cram
         
         # Create versions file
         cat <<-END_VERSIONS > versions.yml
@@ -63,25 +63,25 @@ process SAMTOOLS_MERGE {
     else {
         """ 
         # Single BAM: create symlink for BAM output
-        ln -s ${bams[0]} ${prefix}_merged.bam
+        ln -s ${bams[0]} ${prefix}.bam
         
         # Index the BAM
         samtools index \\
             -@ ${task.cpus} \\
-            ${prefix}_merged.bam
+            ${prefix}.bam
         
         # Convert to CRAM for storage
         samtools view \\
             -@ ${task.cpus} \\
             -T ${ref_fasta} \\
             -C \\
-            -o ${prefix}_merged.cram \\
+            -o ${prefix}.cram \\
             ${bams[0]}
         
         # Index the CRAM
         samtools index \\
             -@ ${task.cpus} \\
-            ${prefix}_merged.cram
+            ${prefix}.cram
         
         # Create versions file
         cat <<-END_VERSIONS > versions.yml

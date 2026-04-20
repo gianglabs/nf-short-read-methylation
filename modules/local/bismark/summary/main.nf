@@ -4,6 +4,7 @@ process BISMARK_SUMMARY {
     container 'community.wave.seqera.io/library/bismark:0.25.1--1f50935de5d79c47'
 
     input:
+    val align_report_name
     val bam
     path align_report
     path dedup_report
@@ -19,6 +20,7 @@ process BISMARK_SUMMARY {
 
     script:
     """
+    touch ${align_report_name.join(' ')}
     bismark2summary ${bam.join(' ')}
 
     cat <<-END_VERSIONS > versions.yml
