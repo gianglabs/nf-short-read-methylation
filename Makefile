@@ -5,41 +5,21 @@ ${HOME}/.pixi/bin/pixi:
 
 # snapshot
 # nf-test snapshot tests
-test-e2e: test-bismark-snapshot test-rastair-snapshot
+test-e2e: test-rastair-snapshot
 	echo "Execute entrypoint of test-fastq-snapshot"
 
-test-rastair-snapshot:
+test-rastair-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
 		tests/rastair.nf.test \
 		--verbose \
 		--profile docker,rastair
 
-test-rastair-update-snapshot:
+test-rastair-update-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
 		tests/rastair.nf.test \
 		--verbose \
 		--update-snapshot \
 		--profile docker,rastair
-
-# nf-test snapshot tests
-test-bismark-snapshot: ${HOME}/.pixi/bin/pixi
-	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
-			tests/bismark.nf.test \
-			--verbose \
-			--profile docker,bismark
-
-# Update nf-test snapshots
-test-bismark-update-snapshot: ${HOME}/.pixi/bin/pixi
-	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
-			tests/bismark.nf.test \
-			--verbose \
-			--update-snapshot \
-			--profile docker,bismark
-
-test-bismark: ${HOME}/.pixi/bin/pixi
-	${HOME}/.pixi/bin/pixi run nextflow run main.nf \
-		-profile docker,bismark \
-		-resume
 
 test-rastair: ${HOME}/.pixi/bin/pixi
 	${HOME}/.pixi/bin/pixi run nextflow run main.nf \

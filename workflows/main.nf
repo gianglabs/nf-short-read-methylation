@@ -6,14 +6,11 @@ include { PICARD_CREATEREFERENCEDICT } from '../modules/local/picard/createrefer
 
 // Alignment
 include { BWAMEM2_ALIGNMENT } from '../subworkflows/local/alignment/bwamem2/main'
-include { BISMARK_ALIGNMENT } from '../subworkflows/local/alignment/bismark/main'
 
 // Preprocess Alignment
 include { GATKSPARK_MARKDUPLICATES } from '../modules/gianglabs/gatkspark/markduplicates/main'
-include { BISMARK_DEDUPLICATE } from '../modules/local/bismark/deduplicate/main'
 
 // Methylation calling
-include { BISMARK_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/bismark/main'
 include { RASTAIR_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/rastair/main'
 
 
@@ -126,27 +123,5 @@ workflow SHORT_READ_METHYLATION {
             ch_reference,
             ch_reference_fai,
         )
-    }
-    else {
-        // the input data with traditional transformation of methylation T-> C
-        BISMARK_ALIGNMENT(
-            ch_trimmed_reads,
-            ch_reference,
-            params.bismark_index ? channel.fromPath(params.bismark_index, checkIfExists: true) : null,
-        )
-        ch_versions = ch_versions.mix(BISMARK_ALIGNMENT.out.versions)
-
-        BISMARK_DEDUPLICATE(
-            BISMARK_ALIGNMENT.out.bam
-        )
-        ch_versions = ch_versions.mix(BISMARK_DEDUPLICATE.out.versions)
-
-        BISMARK_METHYLATION_CALLING(
-            BISMARK_DEDUPLICATE.out.bam,
-            BISMARK_DEDUPLICATE.out.report,
-            ch_reference,
-            BISMARK_ALIGNMENT.out.index,
-        )
-        ch_versions = ch_versions.mix(BISMARK_METHYLATION_CALLING.out.versions)
     }
 } 
