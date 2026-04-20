@@ -8,13 +8,13 @@ ${HOME}/.pixi/bin/pixi:
 test-e2e: test-rastair-snapshot
 	echo "Execute entrypoint of test-fastq-snapshot"
 
-test-rastair-snapshot:
+test-rastair-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
 		tests/rastair.nf.test \
 		--verbose \
 		--profile docker,rastair
 
-test-rastair-update-snapshot:
+test-rastair-update-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
 		tests/rastair.nf.test \
 		--verbose \
