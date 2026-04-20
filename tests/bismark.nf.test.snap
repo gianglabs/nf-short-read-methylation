@@ -44,24 +44,17 @@
                 "trimgalore/fastqc/SRR389222_sub3_L001_trimmed_1.fastq.gz"
             ],
             [
-                "Ecoli_10K_methylated.deduplicated.bam:md5,f70082d36c5b578e702027114031ac1e",
                 "Ecoli_10K_methylated.deduplication_report.txt:md5,b8ec068d6b309da11c04e83cff996270",
-                "Ecoli_10K_methylated_L001_sorted.bam:md5,908761aa388450328fb695bf3cfe753b",
                 "Ecoli_10K_methylated_L001_trimmed_1.fastq.gz:md5,add2fdd04ca2fd69bcedfed97865a1bf",
                 "Ecoli_10K_methylated_L001_trimmed_2.fastq.gz:md5,96cefd56150503cce83ba0f06e2bef3b",
-                "SRR389222_sub1.deduplicated.bam:md5,fd8b2d52921d6e3c7ec5d6f4df2f46da",
                 "SRR389222_sub1.deduplication_report.txt:md5,433b28d3107de912417a52555af7ace3",
-                "SRR389222_sub1_L001_sorted.bam:md5,5d67c71f34d3114a04e2d26256c6df2b",
                 "SRR389222_sub1_L001_trimmed_1.fastq.gz:md5,693099be593a25f4cc5c804673691a2e",
-                "SRR389222_sub1_L002_sorted.bam:md5,56f8e789a29ae3a76426a9b7de290283",
                 "SRR389222_sub1_L002_trimmed_1.fastq.gz:md5,999fd4043b112c00edd7e9c04d9098ce",
-                "SRR389222_sub3.deduplicated.bam:md5,2940a9d665e70fd2fcb6e35536496b3f",
                 "SRR389222_sub3.deduplication_report.txt:md5,97c3faa6ba26c474fca61a241b735c7e",
-                "SRR389222_sub3_L001_sorted.bam:md5,5a99f616194d72d99de102f05fba6497",
                 "SRR389222_sub3_L001_trimmed_1.fastq.gz:md5,5e8339b90ecb42becdbea34e334e84ac"
             ]
         ],
-        "timestamp": "2026-04-20T03:44:23.063598517",
+        "timestamp": "2026-04-20T13:43:55.086366914",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.10.4"

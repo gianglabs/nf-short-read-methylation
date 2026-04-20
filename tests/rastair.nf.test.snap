@@ -46,26 +46,22 @@
                 "Ecoli_10K_methylated.rastair_mbias.txt:md5,63f016218f9c85a24526a9e68c97c5b7",
                 "Ecoli_10K_methylated.rastair_mbias_processed.csv:md5,e46ba9ffc77f03688559a3007e005d91",
                 "Ecoli_10K_methylated.rastair_methylkit.txt.gz:md5,90fdfdb464f2a375c96bf64ea2d30445",
-                "Ecoli_10K_methylated_L001_sorted.bam:md5,a75e2c8f2e43ffd9c989c898d9a6778e",
                 "Ecoli_10K_methylated_L001_trimmed_1.fastq.gz:md5,add2fdd04ca2fd69bcedfed97865a1bf",
                 "Ecoli_10K_methylated_L001_trimmed_2.fastq.gz:md5,96cefd56150503cce83ba0f06e2bef3b",
                 "SRR389222_sub1.rastair_call.txt:md5,23f789a8fe5a457e368f36e02a87ecb2",
                 "SRR389222_sub1.rastair_mbias.txt:md5,63f016218f9c85a24526a9e68c97c5b7",
                 "SRR389222_sub1.rastair_mbias_processed.csv:md5,e46ba9ffc77f03688559a3007e005d91",
                 "SRR389222_sub1.rastair_methylkit.txt.gz:md5,90fdfdb464f2a375c96bf64ea2d30445",
-                "SRR389222_sub1_L001_sorted.bam:md5,0f295e386bb681d7391a1b999bbb1617",
                 "SRR389222_sub1_L001_trimmed_1.fastq.gz:md5,693099be593a25f4cc5c804673691a2e",
-                "SRR389222_sub1_L002_sorted.bam:md5,9d80aeae2dd974330a2f67ff09f64f68",
                 "SRR389222_sub1_L002_trimmed_1.fastq.gz:md5,999fd4043b112c00edd7e9c04d9098ce",
                 "SRR389222_sub3.rastair_call.txt:md5,23f789a8fe5a457e368f36e02a87ecb2",
                 "SRR389222_sub3.rastair_mbias.txt:md5,63f016218f9c85a24526a9e68c97c5b7",
                 "SRR389222_sub3.rastair_mbias_processed.csv:md5,e46ba9ffc77f03688559a3007e005d91",
                 "SRR389222_sub3.rastair_methylkit.txt.gz:md5,90fdfdb464f2a375c96bf64ea2d30445",
-                "SRR389222_sub3_L001_sorted.bam:md5,c7399a8997784c045d6e832b2bcb442a",
                 "SRR389222_sub3_L001_trimmed_1.fastq.gz:md5,5e8339b90ecb42becdbea34e334e84ac"
             ]
         ],
-        "timestamp": "2026-04-20T03:21:28.734666223",
+        "timestamp": "2026-04-20T14:14:31.060889729",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.10.4"
