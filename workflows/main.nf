@@ -149,4 +149,4 @@ workflow SHORT_READ_METHYLATION {
         )
         ch_versions = ch_versions.mix(BISMARK_METHYLATION_CALLING.out.versions)
     }
-}
+} 
