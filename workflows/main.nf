@@ -6,12 +6,15 @@ include { PICARD_CREATEREFERENCEDICT } from '../modules/local/picard/createrefer
 
 // Alignment
 include { BWAMEM2_ALIGNMENT } from '../subworkflows/local/alignment/bwamem2/main'
+include { BSBOLT_ALIGNMENT } from '../subworkflows/local/alignment/bsbolt/main'
 
 // Preprocess Alignment
 include { GATKSPARK_MARKDUPLICATES } from '../modules/gianglabs/gatkspark/markduplicates/main'
+include { SAMTOOLS_MARKDUP } from '../modules/local/samtools/markdup/main'
 
 // Methylation calling
 include { RASTAIR_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/rastair/main'
+include { BSBOLT_METHYLATION_CALLING } from '../subworkflows/local/methylation_calling/bsbolt/main'
 
 
 workflow SHORT_READ_METHYLATION {
@@ -46,7 +49,7 @@ workflow SHORT_READ_METHYLATION {
     nf-short-read-methylation:
      - Nextflow Version
      - Workflow                  : SHORT_READ_METHYLATION
-     - Subworkflows              : ${params.taps ? "RASTAIR" : "BISMARK"}
+     - Subworkflows              : ${params.taps ? "RASTAIR" : "BSBOLT"}
      - Loaded genomes set        : ${params.genome ? params.genome : 'None'}
      - Reference Genome          : ${params.reference}
      - Bismark Index             : ${params.bismark_index ?: 'None'}
@@ -70,8 +73,7 @@ workflow SHORT_READ_METHYLATION {
     }
 
     //
-    // SUBWORKFLOW: BISMARK - FASTQ ONLY
-    // Includes: BISMARK alignment, deduplication, methylation extraction
+    // SUBWORKFLOW: Read trimming
     //
 
     FASTP_TRIM(
@@ -81,7 +83,7 @@ workflow SHORT_READ_METHYLATION {
     ch_versions = ch_versions.mix(FASTP_TRIM.out.versions)
 
     if (params.taps) {
-        // the input data with modern transformation of methylation C-> T
+        // RASTAIR: the input data with modern transformation of methylation C-> T
         ch_reference_fai = channel.empty()
         if (params.reference_index) {
             ch_reference_fai = channel.fromPath(params.reference_index, checkIfExists: true).collect()
@@ -123,5 +125,26 @@ workflow SHORT_READ_METHYLATION {
             ch_reference,
             ch_reference_fai,
         )
+        ch_versions = ch_versions.mix(RASTAIR_METHYLATION_CALLING.out.versions)
+    } else {
+        // BSBOLT: Bisulfite-aware alignment and methylation calling
+        BSBOLT_ALIGNMENT(
+            ch_trimmed_reads,
+            ch_reference,
+            params.index_bsbolt_reference,
+            params.bsbolt_index,
+        )
+        ch_versions = ch_versions.mix(BSBOLT_ALIGNMENT.out.versions)
+
+        SAMTOOLS_MARKDUP(
+            BSBOLT_ALIGNMENT.out.bam
+        )
+        ch_versions = ch_versions.mix(SAMTOOLS_MARKDUP.out.versions)
+
+        BSBOLT_METHYLATION_CALLING(
+            SAMTOOLS_MARKDUP.out.bam.join(SAMTOOLS_MARKDUP.out.bai, by: 0),
+            BSBOLT_ALIGNMENT.out.bsbolt_db
+        )
+        ch_versions = ch_versions.mix(BSBOLT_METHYLATION_CALLING.out.versions)
     }
 } 
