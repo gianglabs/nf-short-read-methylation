@@ -11,7 +11,7 @@ workflow BSBOLT_METHYLATION_CALLING {
 
     BSBOLT_CALL_METHYLATION(
         ch_bam,
-        ch_bsbolt_db
+        ch_bsbolt_db,
     )
     ch_versions = ch_versions.mix(BSBOLT_CALL_METHYLATION.out.versions)
 
@@ -34,4 +34,3 @@ workflow BSBOLT_METHYLATION_CALLING {
     matrix = BSBOLT_AGGREGATE_MATRIX.out.matrix
     versions = ch_versions
 }
-

@@ -4,10 +4,10 @@ process BSBOLT_AGGREGATE_MATRIX {
     container "docker.io/nttg8100/bsbolt:1.6.0"
 
     input:
-    path(cgmap_files)
+    path cgmap_files
 
     output:
-    path("*.txt"), emit: matrix
+    path ("*.txt"), emit: matrix
     path "versions.yml", emit: versions
 
     when:
@@ -15,19 +15,19 @@ process BSBOLT_AGGREGATE_MATRIX {
 
     script:
     def args = task.ext.args ?: ''
-    
+
     // Output Options
     def cgonly = task.ext.cgonly ? '-CG' : ''
     def count_matrix = task.ext.count_matrix ? '-count' : ''
     def verbose = task.ext.verbose ? '-verbose' : ''
-    
+
     // Algorithm Options
     def min_coverage = task.ext.min_coverage ? "-min-coverage ${task.ext.min_coverage}" : ''
     def min_sample = task.ext.min_sample ? "-min-sample ${task.ext.min_sample}" : ''
-    
+
     // Build the file list argument
     def file_arg = cgmap_files.collect { it.toString() }.join(',')
-    
+
     // Build sample labels argument if provided
     def sample_labels_arg = task.ext.sample_labels ? "-S ${task.ext.sample_labels}" : ''
 

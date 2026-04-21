@@ -18,10 +18,10 @@ process BSBOLT_ALIGN {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    
+
     // Input/Output Options
     def f1 = reads[0]
-    def f2 = (reads.size() > 1 && reads[1] != null && reads[1].toString() != 'null') ? "-F2 ${reads[1]}" : ''
+    def f2 = reads.size() > 1 && reads[1] != null && reads[1].toString() != 'null' ? "-F2 ${reads[1]}" : ''
     def os_arg = task.ext.os ? '-OS' : ''
     def ot_arg = task.ext.ot ? "-OT ${task.ext.ot}" : '-OT 1'
     def read_group = task.ext.read_group ? "-R '${task.ext.read_group}'" : ''

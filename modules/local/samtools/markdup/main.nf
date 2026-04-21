@@ -55,5 +55,3 @@ process SAMTOOLS_MARKDUP {
     END_VERSIONS
     """
 }
-
-

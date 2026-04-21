@@ -127,7 +127,8 @@ workflow SHORT_READ_METHYLATION {
             ch_reference_fai,
         )
         ch_versions = ch_versions.mix(RASTAIR_METHYLATION_CALLING.out.versions)
-    } else {
+    }
+    else {
         // BSBOLT: Bisulfite-aware alignment and methylation calling
         BSBOLT_ALIGNMENT(
             ch_trimmed_reads,
@@ -144,8 +145,8 @@ workflow SHORT_READ_METHYLATION {
 
         BSBOLT_METHYLATION_CALLING(
             SAMTOOLS_MARKDUP.out.bam.join(SAMTOOLS_MARKDUP.out.bai, by: 0),
-            BSBOLT_ALIGNMENT.out.bsbolt_db
+            BSBOLT_ALIGNMENT.out.bsbolt_db,
         )
         ch_versions = ch_versions.mix(BSBOLT_METHYLATION_CALLING.out.versions)
     }
-} 
+}

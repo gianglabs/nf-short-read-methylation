@@ -19,12 +19,12 @@ process BSBOLT_CALL_METHYLATION {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    
+
     // Output Options
     def text_output = task.ext.text ? '-text' : ''
     def bedgraph_output = task.ext.bedgraph ? '-BG' : ''
     def cpg_only = task.ext.cpg_only ? '-CG' : ''
-    
+
     // Algorithm Options
     def remove_ccgg = task.ext.remove_ccgg ? '-remove-ccgg' : ''
     def verbose = task.ext.verbose ? '-verbose' : ''
@@ -65,7 +65,7 @@ process BSBOLT_CALL_METHYLATION {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def text_output = task.ext.text ?: false
     def bedgraph_output = task.ext.bedgraph ?: false
-    
+
     """
     # Create stub output files
     touch ${prefix}.cgmap

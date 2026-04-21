@@ -25,13 +25,12 @@ workflow BSBOLT_ALIGNMENT {
     }
 
     // Combine reads with index
-    ch_bsbolt_inputs = reads_ch
-        .combine(bsbolt_index_ch)
+    ch_bsbolt_inputs = reads_ch.combine(bsbolt_index_ch)
 
     // Align reads - split the combined channel back into separate inputs
     BSBOLT_ALIGN(
         ch_bsbolt_inputs.map { meta, reads, db -> [meta, reads] },
-        ch_bsbolt_inputs.map { meta, reads, db -> db }
+        ch_bsbolt_inputs.map { meta, reads, db -> db },
     )
     ch_versions = ch_versions.mix(BSBOLT_ALIGN.out.versions)
 
