@@ -1,5 +1,0 @@
-fastp/trim:
-  - modules
-  - modules_gianglabs
-  - fastp
-  - fastp/trim

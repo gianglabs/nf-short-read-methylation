@@ -1,14 +1,6 @@
 pipeline_info/*
-**/*.{bcf,vcf,vcf.gz,vcf.gz.tbi,html,yml}
+**/*.{bcf,vcf,gz,vcf.gz.tbi,html,yml,bam,bam.bai,cram,cram.crai}
 fastp/*
-bismark/alignments/logs/*
-bismark/reports/*.html
-bismark/summary/*.txt
-bismark/deduplicated/*
-bismark/methylation_calls/**/*.gz
-
-gatk/deduplicated/*
-alignment/*
-merged_alignment/*
+bsbolt/methylation_calls/*.gz
 rastair/methylkit/*.gz
 rastair/mbiasparser/*.pdf
