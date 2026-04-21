@@ -1,4 +1,4 @@
-.PHONY: test-e2e clean lint
+.PHONY: test-e2e test-rastair test-bsbolt clean lint
 
 ${HOME}/.pixi/bin/pixi:
 	curl -sSL https://pixi.sh/install.sh | sh
@@ -8,6 +8,7 @@ ${HOME}/.pixi/bin/pixi:
 test-e2e: test-rastair-snapshot
 	echo "Execute entrypoint of test-fastq-snapshot"
 
+# Rastair
 test-rastair-snapshot: ${HOME}/.pixi/bin/pixi
 	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
 		tests/rastair.nf.test \
@@ -25,6 +26,27 @@ test-rastair: ${HOME}/.pixi/bin/pixi
 	${HOME}/.pixi/bin/pixi run nextflow run main.nf \
 		-profile docker,rastair \
 		-resume
+
+
+# BSbolt
+test-bsbolt-snapshot: ${HOME}/.pixi/bin/pixi
+	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
+		tests/bsbolt.nf.test \
+		--verbose \
+		--profile docker,bsbolt
+
+test-bsbolt-update-snapshot: ${HOME}/.pixi/bin/pixi
+	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
+		tests/bsbolt.nf.test \
+		--verbose \
+		--update-snapshot \
+		--profile docker,bsbolt
+
+test-bsbolt: ${HOME}/.pixi/bin/pixi
+	${HOME}/.pixi/bin/pixi run nextflow run main.nf \
+		-profile docker,bsbolt \
+		-resume
+
 # Lint
 lint: ${HOME}/.pixi/bin/pixi
 	${HOME}/.pixi/bin/pixi run nextflow lint $(shell find . -name "*.nf" \

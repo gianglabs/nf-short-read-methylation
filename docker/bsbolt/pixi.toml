@@ -1,0 +1,24 @@
+[workspace]
+authors = ["nttg8100 <nttg8100@gmail>"]
+channels = ["conda-forge", "bioconda"]
+name = "bsbolt"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.11.*"
+make = ">=4.4.1,<5"
+gcc = "13.*"
+gxx = "13.*"
+autoconf = "2.71.*"
+automake = "1.16.*"
+libtool = "2.4.*"
+zlib = "1.2.*"
+pip = ">=24.0"
+setuptools = ">=70.1"
+wheel = ">=0.43"
+
+[pypi-dependencies]
+bsbolt = "==1.6.0"

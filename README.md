@@ -1,6 +1,11 @@
 # Nextflow Short-Read Methylation
 
-This repository implements a comprehensive Nextflow pipeline for bisulfite sequencing and TAPS (Transposase-Assisted Pyridoxylamine Sequencing) short-read methylation analysis. The pipeline supports both traditional Bismark-based T→C methylation conversion and modern RASTAIR-based C→T conversion (TAPS), with integrated quality control and comprehensive methylation calling.
+This repository implements a comprehensive Nextflow pipeline for bisulfite sequencing and methylation analysis. The pipeline supports two distinct methylation calling approaches:
+
+1. **BSBolt** (default, `taps=false`) - BiSulfite Bolt: Fast bisulfite-aware alignment with methylation calling
+2. **RASTAIR** (`taps=true`) - Modern TAPS-based C→T bisulfite conversion with BWA-MEM2 alignment
+
+This pipeline provides integrated quality control, flexible alignment options, and comprehensive methylation calling with multiple output formats.
 
 ## Pipeline Architecture
 
@@ -15,24 +20,25 @@ The pipeline is optimized for the following workflow:
 - **Input**: Illumina short-read FASTQ files (required for all reports)
 - **Quality Filtering**: FASTP for read-level trimming and quality filtering
 - **Alignment**:
-  - **Bismark mode** (default): Bismark + Bowtie2 alignment with T→C bisulfite conversion
+  - **BSBolt mode** (default): BSBolt bisulfite-aware alignment with C→T conversion
   - **RASTAIR/TAPS mode**: BWA-MEM2 alignment with C→T bisulfite conversion
-- **Deduplication**: Removal of PCR duplicates (Bismark deduplication or GATK MarkDuplicates)
+- **Deduplication**: Removal of PCR duplicates (Samtools MarkDup for BSBolt, GATK MarkDuplicates for RASTAIR)
 - **Methylation Calling**:
-  - **Bismark pathway**: Bismark methylation extraction with per-cytosine calls
+  - **BSBolt pathway**: Bisulfite-specific methylation calling with CGmap/BedGraph output
   - **RASTAIR pathway**: M-bias calculation, trimming, and RASTAIR methylation calling
 - **Quality Metrics** (generated automatically):
   - M-bias analysis and plots
   - Methylation coverage reports
   - Cytosine context summary (CpG, CHG, CHH)
   - FASTP quality control reports
-- **Output**: BedGraph files, methylation calls, coverage reports, and MethylKit-formatted results
+- **Aggregation** (BSBolt only): Cross-sample methylation matrix generation
+- **Output**: BedGraph files, methylation calls, coverage reports, and aggregated matrices
 
 ### Configuration for Primary Use Case
 
 ```bash
 # Default configuration uses:
-# - Bismark as methylation caller (or rastair with taps=true)
+# - BSBolt as methylation caller (or rastair with taps=true)
 # - GRCh38/hg38 reference genome via --genome parameter
 # - FASTP quality filtering
 # - Automatic deduplication
@@ -41,7 +47,7 @@ The pipeline is optimized for the following workflow:
 pixi run nextflow run main.nf \
   --input samplesheet.csv \
   --genome GRCh38 \
-  -profile docker,bismark \
+  -profile docker,bsbolt \
   -resume
 ```
 
@@ -77,13 +83,13 @@ sample3,L001,/path/to/sample3_R1.fastq.gz,
 
 ### 2. Run the Pipeline
 
-#### Standard Run (FASTQ Input with Bismark)
+#### Standard Run (BSBolt - Default)
 
 ```bash
 nextflow run main.nf \
   --input samplesheet.csv \
   --genome GRCh38 \
-  -profile docker,bismark \
+  -profile docker,bsbolt \
   -resume
 ```
 
@@ -106,30 +112,26 @@ nextflow run main.nf \
 # All quality control and methylation reports are generated automatically
 # No additional flags needed for reports - they are created by default
 
-# Generate additional per-cytosine methylation reports (Bismark only)
+# BSBolt with automatic index building
 nextflow run main.nf \
   --input samplesheet.csv \
   --genome GRCh38 \
-  --cytosine_report true \
-  -profile docker,bismark \
+  --index_bsbolt_reference true \
+  -profile docker,bsbolt \
   -resume
 
+# BSBolt with pre-built index
+nextflow run main.nf \
+  --input samplesheet.csv \
+  --bsbolt_index /path/to/bsbolt_index \
+  -profile docker,bsbolt \
+  -resume
 
 # Custom reference genome (alternative to --genome)
 nextflow run main.nf \
   --input samplesheet.csv \
   --reference /path/to/reference.fa \
-  --reference_index /path/to/reference.fa.fai \
-  --reference_dict /path/to/reference.dict \
-  -profile docker,bismark \
-  -resume
-
-# Use pre-built Bismark index for faster processing
-nextflow run main.nf \
-  --input samplesheet.csv \
-  --genome GRCh38 \
-  --bismark_index /path/to/bismark_index \
-  -profile docker,bismark \
+  -profile docker,bsbolt \
   -resume
 
 # RASTAIR with custom trim parameters
@@ -146,32 +148,37 @@ nextflow run main.nf \
 For test mode with sample data:
 
 ```bash
-nextflow run main.nf -profile docker,test,bismark -resume
+nextflow run main.nf -profile docker,test,bsbolt -resume
 ```
 
 ### 3. View Results
 
 Output files will be generated in the `results/` directory.
 
-#### Bismark Pipeline Results:
+#### BSBolt Pipeline Results:
 
 ```
 results/
 ├── fastp/                           # Quality control reports
 │   ├── *.html
 │   └── *.json
-├── bismark/
-│   ├── alignments/                  # Aligned BAM files
-│   ├── deduplicated/                # Deduplicated BAM files
-│   │   ├── *.deduplicated.bam
-│   │   └── *.deduplication_report.txt
+├── bsbolt/
+│   ├── alignment/                   # Aligned BAM files
 │   ├── methylation_calls/
-│   │   ├── bedGraph/                # BedGraph files for visualization
-│   │   ├── methylation_calls/       # Raw methylation calls
-│   │   ├── methylation_coverage/    # Per-cytosine reports
-│   │   ├── mbias/                   # M-bias plots and data
-│   │   └── splitting_report/
-│   └── reports/                     # QC and summary reports
+│   │   ├── *.cgmap.gz               # CGmap format methylation calls
+│   │   ├── *.bedGraph.gz            # BedGraph format for visualization
+│   │   └── *.txt                    # Text format calls
+│   └── aggregate_matrix/            # Cross-sample methylation matrix
+│       └── *_matrix.txt
+├── samtools/
+│   └── deduplicated/                # Deduplicated BAM files
+│       ├── *.dup.bam
+│       └── *.dup.bam.bai
+├── merged_alignment/                # Sorted and merged alignments
+│   ├── *.bam
+│   ├── *.bam.bai
+│   ├── *.cram
+│   └── *.cram.crai
 └── pipeline_info/                   # Execution logs
 ```
 
@@ -192,41 +199,52 @@ results/
 
 #### Key Output Files:
 
-**Methylation Calls:**
+**Methylation Calls (BSBolt):**
 
+- `*.cgmap.gz` - CGmap format (platform-independent methylation format)
 - `*.bedGraph.gz` - BedGraph format (compatible with IGV, UCSC, etc.)
-- `*.cov.gz` - Methylation coverage with read counts
+- `*.txt` - Text format methylation calls
+- `*_matrix.txt` - Aggregated cross-sample methylation matrix
+
+**Methylation Calls (RASTAIR):**
+
+- `*.txt` - Methylation site calls
 - `*.methylkit.txt.gz` - MethylKit format for R analysis
 
 **Quality Metrics:**
 
 - `*.mbias.txt` - M-bias analysis by read position
-- `*.deduplication_report.txt` - Deduplication statistics
 - `*_fastqc.html` - Read quality reports
 
 ## Pipeline Modes
 
-### Bismark Mode (Default)
+### BSBolt Mode (Default)
 
-Traditional bisulfite sequencing analysis with T→C conversion:
+Bisulfite-aware alignment and methylation calling with BSBolt:
 
 ```bash
 nextflow run main.nf \
   --input samplesheet.csv \
   --genome GRCh38 \
-  -profile docker,bismark
+  -profile docker,bsbolt
 ```
 
 **Workflow:**
 
 1. FASTP quality filtering and trimming
-2. Bismark genome preparation (index building)
-3. Bismark alignment with Bowtie2
-4. Deduplication (Bismark deduplication)
-5. Methylation extraction (cytosine-level calls)
-6. Per-cytosine reports (optional)
+2. BSBolt genome preparation (index building)
+3. BSBolt bisulfite-aware alignment
+4. Samtools duplicate marking and indexing
+5. BSBolt methylation calling (CGmap format)
+6. Cross-sample methylation matrix aggregation
 
-**Output:** BedGraph, coverage files, methylation calls
+**Output:** CGmap, BedGraph, aggregated matrices
+
+**Key Features:**
+- Fast, accurate bisulfite-aware alignment
+- Bisulfite-specific error handling
+- CGmap format output
+- Cross-sample matrix aggregation for comparative analysis
 
 ### RASTAIR/TAPS Mode
 
@@ -252,16 +270,21 @@ nextflow run main.nf \
 
 **Output:** M-bias plots, methylation calls, MethylKit files
 
+**Key Features:**
+- TAPS-specific workflow with optimized parameters
+- M-bias analysis and trimming
+- MethylKit format for R integration
+
 ## Production Usage
 
 For production runs, always specify the `--genome` parameter to ensure consistent reference genome usage:
 
 ```bash
-# Production Bismark run
+# Production BSBolt run
 nextflow run main.nf \
   --input samplesheet.csv \
   --genome GRCh38 \
-  -profile docker,bismark \
+  -profile docker,bsbolt \
   -resume
 
 # Production RASTAIR run
@@ -291,9 +314,7 @@ If using a genome not in the standard list, provide explicit reference paths ins
 nextflow run main.nf \
   --input samplesheet.csv \
   --reference /path/to/reference.fa \
-  --reference_index /path/to/reference.fa.fai \
-  --reference_dict /path/to/reference.dict \
-  -profile docker,bismark \
+  -profile docker,bsbolt \
   -resume
 ```
 
@@ -301,15 +322,15 @@ nextflow run main.nf \
 
 - **FASTQ Input Required**: All quality control and methylation reports are generated automatically without additional flags
 - **Two Methylation Pathways**:
-  - **Bismark**: Traditional T→C bisulfite conversion with Bowtie2 alignment
-  - **RASTAIR/TAPS**: Modern C→T bisulfite conversion with BWA-MEM2 alignment
-- **Flexible Alignment Options**: Bismark+Bowtie2 or BWA-MEM2 with automatic index building
+  - **BSBolt**: Bisulfite-aware alignment with CGmap and BedGraph output, plus cross-sample matrix aggregation
+  - **RASTAIR/TAPS**: Modern C→T bisulfite conversion with BWA-MEM2 alignment and MethylKit formatting
+- **Flexible Alignment Options**: BSBolt or BWA-MEM2 with automatic index building
 - **Quality Control**: FASTP trimming with comprehensive QC reports (generated automatically)
-- **M-bias Analysis**: Automatic M-bias calculation and visualization plots
+- **M-bias Analysis**: Automatic M-bias calculation and visualization plots (RASTAIR mode)
 - **Methylation Calling**: Per-cytosine calls with context-specific reporting (CpG, CHG, CHH) - no configuration needed
-- **Deduplication**: Automatic PCR duplicate removal (Bismark or GATK MarkDuplicates)
+- **Deduplication**: Automatic PCR duplicate removal (Samtools for BSBolt, GATK MarkDuplicates for RASTAIR)
 - **Multi-lane Support**: Automatic merging of multiple sequencing lanes per sample
-- **Output Formats**: BedGraph, coverage files, MethylKit format, M-bias plots
+- **Output Formats**: CGmap, BedGraph, MethylKit format, aggregated matrices
 - **Flexible Configuration**: Container support (Docker/Singularity), multiple profiles
 - **Comprehensive Testing**: Full test suite with nf-test snapshots
 
@@ -324,14 +345,14 @@ nextflow run main.nf \
 | `genome`          | "GRCh38"  | Reference genome (test/GRCh38) |
 | `reference`       | null      | Custom reference FASTA path    |
 | `reference_index` | null      | Reference FAI index            |
-| `reference_dict`  | null      | Reference dictionary file      |
 
 ### Pipeline Selection
 
 | Parameter              | Default | Description                           |
 | ---------------------- | ------- | ------------------------------------- |
-| `taps`                 | false   | Use RASTAIR (true) or Bismark (false) |
-| `bismark_index`        | null    | Pre-built Bismark index directory     |
+| `taps`                 | false   | Use RASTAIR (true) or BSBolt (false)  |
+| `bsbolt_index`         | null    | Pre-built BSBolt index directory      |
+| `index_bsbolt_reference` | false  | Build BSBolt index from reference     |
 | `bwa2_index`           | null    | Pre-built BWA-MEM2 index directory    |
 | `index_bwa2_reference` | false   | Build BWA-MEM2 index from reference   |
 
@@ -348,13 +369,227 @@ nextflow run main.nf \
 | ------------------ | --------- | ----------------------------------------- |
 | `publish_dir_mode` | "symlink" | Output directory mode (symlink/copy/move) |
 
-## Running Tests
+## BSBolt-Specific Parameters
 
-The pipeline includes comprehensive tests for both Bismark and RASTAIR pathways:
+### Index Parameters (BSBOLT_INDEX)
+
+| Parameter | Default | Description |
+| --------- | ------- | ----------- |
+| `index_bsbolt_reference` | false | Build BSBolt index from reference genome on first run |
+| `bsbolt_index` | null | Path to pre-built BSBolt index directory (optional) |
+
+**Usage:**
+```bash
+# Auto-build index from reference
+nextflow run main.nf --genome GRCh38 --index_bsbolt_reference true -profile docker,bsbolt
+
+# Use pre-built index
+nextflow run main.nf --bsbolt_index /path/to/index -profile docker,bsbolt
+```
+
+### Alignment Parameters (BSBOLT_ALIGN)
+
+#### Input/Output Options
+
+| Parameter | Default | Type | Description |
+| --------- | ------- | ---- | ----------- |
+| `bsbolt_align_os` | false | boolean | Output single-strand BAM (default: output both strands) |
+| `bsbolt_align_ot` | 1 | integer | Original top strand [0=C/T conversion, 1=bisulfite C/T] |
+| `bsbolt_align_smart_pairing` | false | boolean | Enable smart pairing detection |
+| `bsbolt_align_read_group` | null | string | SAM read group header line (e.g., "@RG\tID:sample1\tSM:sample1") |
+| `bsbolt_align_xa` | null | integer | Max secondary alignments to output [0-255] |
+| `bsbolt_align_dr` | null | string | Duplicate read handling [0=keep all, 1=mark duplicates, 2=remove] |
+
+#### Scoring Options
+
+| Parameter | Default | Type | Description |
+| --------- | ------- | ---- | ----------- |
+| `bsbolt_align_score_match` | 1 | integer | Match score (+A flag) |
+| `bsbolt_align_score_mismatch` | 4 | integer | Mismatch penalty (-B flag) |
+| `bsbolt_align_indel_penalty` | 6 | integer | Indel open penalty (-INDEL flag) |
+| `bsbolt_align_gap_ext` | 1 | integer | Gap extension penalty (-E flag) |
+| `bsbolt_align_clip_penalty` | 5 | integer | Soft clipping penalty (-L flag) |
+| `bsbolt_align_unpaired_penalty` | 9 | integer | Unpaired read penalty (-U flag) |
+
+#### Bisulfite-Specific Options
+
+| Parameter | Default | Type | Description |
+| --------- | ------- | ---- | ----------- |
+| `bsbolt_align_undirectional` | false | boolean | Bisulfite library is undirectional |
+| `bsbolt_align_ch_conversion` | null | float | Non-CpG methylation conversion rate (0.0-1.0) |
+| `bsbolt_align_ch_sites` | null | string | Non-CpG sites to consider (CHG/CHH) |
+| `bsbolt_align_substitution_threshold` | null | float | Threshold for substitution calling |
+
+#### Algorithm Options
+
+| Parameter | Default | Type | Description |
+| --------- | ------- | ---- | ----------- |
+| `bsbolt_align_seed_length` | 19 | integer | Seed length (-k flag) |
+| `bsbolt_align_band_width` | 100 | integer | Band width for alignment (-w flag) |
+| `bsbolt_align_diagonal_drop` | 0 | integer | Diagonal drop threshold (-d flag) |
+| `bsbolt_align_internal_seed` | null | integer | Internal seed length (-r flag) |
+| `bsbolt_align_seed_occ` | null | integer | Seed occurrence threshold (-y flag) |
+| `bsbolt_align_max_seed_occ` | 500 | integer | Max seed occurrences (-c flag) |
+| `bsbolt_align_chain_drop` | 20 | integer | Chain drop threshold (-D flag) |
+| `bsbolt_align_chain_min` | 0 | integer | Min chain length (-W flag) |
+| `bsbolt_align_mate_rescue` | null | integer | Mate rescue threshold (-m flag) |
+| `bsbolt_align_skip_mate_rescue` | false | boolean | Skip mate rescue (-S flag) |
+| `bsbolt_align_skip_pairing` | false | boolean | Skip pairing info (-P flag) |
+| `bsbolt_align_ignore_alt` | false | boolean | Ignore ALT contigs (-j flag) |
+| `bsbolt_align_min_score` | null | integer | Minimum alignment score (-T flag) |
+| `bsbolt_align_mark_secondary` | false | boolean | Mark secondary alignments (-M flag) |
+| `bsbolt_align_insert_size` | null | integer | Expected insert size (-I flag) |
+
+### Methylation Calling Parameters (BSBOLT_CALL_METHYLATION)
+
+| Parameter | Default | Type | Description |
+| --------- | ------- | ---- | ----------- |
+| `bsbolt_call_text` | false | boolean | Output text format methylation calls |
+| `bsbolt_call_bedgraph` | false | boolean | Output BedGraph format |
+| `bsbolt_call_cpg_only` | false | boolean | Only output CpG sites (-CG flag) |
+| `bsbolt_call_remove_ccgg` | false | boolean | Remove CCGG sites (-remove-ccgg flag) |
+| `bsbolt_call_verbose` | false | boolean | Verbose output |
+| `bsbolt_call_ignore_overlap` | true | boolean | Ignore overlapping pairs |
+| `bsbolt_call_max_depth` | null | integer | Maximum read depth per site |
+| `bsbolt_call_min_depth` | 1 | integer | Minimum read depth per site |
+| `bsbolt_call_base_quality` | 0 | integer | Minimum base quality (-BQ flag) |
+| `bsbolt_call_mapping_quality` | 0 | integer | Minimum mapping quality (-MQ flag) |
+| `bsbolt_call_ignore_orphans` | false | boolean | Ignore orphaned reads (-IO flag) |
+
+### Aggregation Parameters (BSBOLT_AGGREGATE_MATRIX)
+
+| Parameter | Default | Type | Description |
+| --------- | ------- | ---- | ----------- |
+| `bsbolt_aggregate_min_coverage` | 10 | integer | Minimum coverage threshold per site |
+| `bsbolt_aggregate_min_sample` | 0.8 | float | Min proportion of samples with valid coverage (0.0-1.0) |
+| `bsbolt_aggregate_cgonly` | false | boolean | Only include CpG sites |
+| `bsbolt_aggregate_count_matrix` | false | boolean | Output count matrix with methylated/total counts |
+| `bsbolt_aggregate_verbose` | false | boolean | Verbose output |
+| `bsbolt_aggregate_sample_labels` | null | string | Comma-separated sample labels or path to label file |
+
+**Usage:**
+```bash
+# Default aggregation (10x coverage, 80% sample requirement)
+nextflow run main.nf --input samplesheet.csv -profile docker,bsbolt
+
+# Stringent aggregation (30x coverage, 100% samples)
+nextflow run main.nf --input samplesheet.csv \
+  --bsbolt_aggregate_min_coverage 30 \
+  --bsbolt_aggregate_min_sample 1.0 \
+  -profile docker,bsbolt
+
+# CpG-only count matrix
+nextflow run main.nf --input samplesheet.csv \
+  --bsbolt_aggregate_cgonly true \
+  --bsbolt_aggregate_count_matrix true \
+  -profile docker,bsbolt
+```
+
+## Preset Configurations for Different Data Types
+
+### WGBS (Whole Genome Bisulfite Sequencing)
+
+WGBS provides comprehensive methylation coverage across the entire genome with relatively high and uniform coverage.
 
 ```bash
-# Run Bismark pipeline test
-make test-bismark
+nextflow run main.nf \
+  --input samplesheet.csv \
+  --genome GRCh38 \
+  --index_bsbolt_reference true \
+  --bsbolt_align_seed_length 19 \
+  --bsbolt_align_min_score 60 \
+  --bsbolt_call_min_depth 5 \
+  --bsbolt_call_base_quality 20 \
+  --bsbolt_call_mapping_quality 30 \
+  --bsbolt_aggregate_min_coverage 10 \
+  --bsbolt_aggregate_min_sample 0.8 \
+  -profile docker,bsbolt \
+  -resume
+```
+
+**Key settings:**
+- Medium seed length (19bp) for sensitive alignment
+- Moderate minimum score (60) for accuracy
+- Low minimum depth (5) for coverage flexibility
+- Base quality threshold (20) to filter poor quality bases
+- Mapping quality (30) to ensure reliable alignments
+- Matrix aggregation at 10x coverage with 80% sample requirement
+
+### Masked WGBS (WGBS with Repeat Masking)
+
+Masked WGBS uses repeat-masked reference genome to improve alignment specificity in repetitive regions.
+
+```bash
+nextflow run main.nf \
+  --input samplesheet.csv \
+  --reference /path/to/genome.fa.masked \
+  --index_bsbolt_reference true \
+  --bsbolt_align_seed_length 20 \
+  --bsbolt_align_band_width 200 \
+  --bsbolt_align_min_score 70 \
+  --bsbolt_call_min_depth 5 \
+  --bsbolt_call_base_quality 25 \
+  --bsbolt_call_mapping_quality 40 \
+  --bsbolt_aggregate_min_coverage 15 \
+  --bsbolt_aggregate_min_sample 0.9 \
+  -profile docker,bsbolt \
+  -resume
+```
+
+**Key settings:**
+- Slightly longer seed (20bp) for better specificity with masked regions
+- Wider band (200) for flexible gapped alignment
+- Higher minimum score (70) for masked genome reliability
+- Higher quality thresholds for stringency
+- Stricter aggregation (15x, 90% samples) for high-confidence sites
+- Useful for repeat-rich regions and complex genomes
+
+### RRBS (Reduced Representation Bisulfite Sequencing)
+
+RRBS targets CpG-rich regions via enzymatic digestion (MspI/HpaII), resulting in fragment-biased coverage patterns and fewer sites than WGBS.
+
+```bash
+nextflow run main.nf \
+  --input samplesheet.csv \
+  --genome GRCh38 \
+  --index_bsbolt_reference true \
+  --bsbolt_align_seed_length 16 \
+  --bsbolt_align_max_seed_occ 2000 \
+  --bsbolt_align_skip_pairing true \
+  --bsbolt_call_min_depth 3 \
+  --bsbolt_call_base_quality 15 \
+  --bsbolt_call_mapping_quality 20 \
+  --bsbolt_call_cpg_only true \
+  --bsbolt_aggregate_min_coverage 5 \
+  --bsbolt_aggregate_min_sample 0.7 \
+  --bsbolt_aggregate_cgonly true \
+  -profile docker,bsbolt \
+  -resume
+```
+
+**Key settings:**
+- Shorter seed (16bp) for highly repetitive CpG regions
+- Higher max seed occurrences (2000) to handle over-representation
+- Skip pairing info for RRBS which may have unusual insert sizes
+- Lower minimum depth (3) due to targeted nature
+- Lower quality thresholds (15 BQ, 20 MQ) - RRBS has different quality profiles
+- CpG-only output for focused analysis
+- Relaxed aggregation (5x, 70% samples) since RRBS has fewer total sites
+
+**RRBS Considerations:**
+- Library preparation includes MspI/HpaII digestion
+- Fragments typically 40-220bp range
+- Highly enriched for CpG sites
+- May have biased fragment size distribution
+- Often shows quality patterns different from WGBS
+
+
+
+The pipeline includes comprehensive tests for both BSBolt and RASTAIR pathways:
+
+```bash
+# Run BSBolt pipeline test
+make test-bsbolt
 
 # Run RASTAIR pipeline test
 make test-rastair
@@ -363,7 +598,7 @@ make test-rastair
 make test-e2e
 
 # Update test snapshots after changes
-make test-bismark-update-snapshot
+make test-bsbolt-update-snapshot
 make test-rastair-update-snapshot
 
 # Lint Nextflow code
@@ -393,7 +628,6 @@ The pipeline includes pre-configured references:
 
 - FASTA: `s3://ngi-igenomes/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.fasta`
 - FAI: `s3://ngi-igenomes/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.fasta.fai`
-- Dict: `s3://ngi-igenomes/igenomes/Homo_sapiens/GATK/GRCh38/Sequence/WholeGenomeFasta/Homo_sapiens_assembly38.dict`
 
 **Test Genome:**
 
@@ -404,7 +638,7 @@ The pipeline includes pre-configured references:
 | Tool     | Version | Purpose                                      |
 | -------- | ------- | -------------------------------------------- |
 | fastp    | 1.1.0   | Read QC and trimming                         |
-| Bismark  | 0.25.1  | Bisulfite alignment & methylation extraction |
+| BSBolt   | 1.6.0   | Bisulfite-aware alignment & methylation      |
 | BWA-MEM2 | Latest  | High-speed sequence alignment                |
 | Samtools | 1.18    | BAM/SAM manipulation                         |
 | Picard   | 3.1.1   | SAM/BAM utilities                            |
@@ -417,40 +651,41 @@ The pipeline includes pre-configured references:
 The pipeline uses modular components for:
 
 - **Quality Control**: FASTP read trimming and filtering
-- **Reference Preparation**: Indexing (Bismark, BWA-MEM2, FASTA)
-- **Alignment**: Bismark (Bowtie2) or BWA-MEM2
-- **Deduplication**: Bismark deduplication or GATK MarkDuplicates
-- **Methylation Calling**: Bismark extraction or RASTAIR calling
+- **Reference Preparation**: Indexing (BSBolt, BWA-MEM2, FASTA)
+- **Alignment**: BSBolt or BWA-MEM2
+- **Deduplication**: Samtools MarkDup (BSBolt) or GATK MarkDuplicates (RASTAIR)
+- **Methylation Calling**: BSBolt calling or RASTAIR calling
+- **Aggregation**: Cross-sample matrix generation (BSBolt only)
 - **Output Processing**: Coverage conversion, MethylKit formatting
 
 ### Subworkflows
 
 The pipeline organizes complex workflows into subworkflows:
 
-- **BISMARK_ALIGNMENT**: Index building → alignment → sorting/merging
+- **BSBOLT_ALIGNMENT**: Index building → alignment → sorting/merging
 - **BWAMEM2_ALIGNMENT**: Optional index → alignment → sorting/merging
-- **BISMARK_METHYLATION_CALLING**: Extraction → coverage conversion → reporting
+- **BSBOLT_METHYLATION_CALLING**: CGmap generation → aggregation
 - **RASTAIR_METHYLATION_CALLING**: M-bias → trimming → calling → formatting
 
 ## Output Description
 
-### Bismark Mode
+### BSBolt Mode
 
 **Alignment Results:**
 
-- `bismark/alignments/*.bam` - Aligned BAM files
-- `bismark/deduplicated/*.bam` - Deduplicated BAM files
+- `bsbolt/alignment/*.bam` - Aligned BAM files
+- `samtools/deduplicated/*.dup.bam` - Deduplicated BAM files
+- `merged_alignment/*.bam` - Sorted and merged alignments
 
 **Methylation Results:**
 
-- `bismark/methylation_calls/bedGraph/*.bedGraph.gz` - BedGraph format for visualization
-- `bismark/methylation_calls/methylation_calls/*.txt.gz` - Raw methylation calls
-- `bismark/methylation_calls/methylation_coverage/*.cov.gz` - Coverage with counts
-- `bismark/methylation_calls/mbias/*.txt` - M-bias analysis by position
+- `bsbolt/methylation_calls/*.cgmap.gz` - CGmap format methylation calls
+- `bsbolt/methylation_calls/*.bedGraph.gz` - BedGraph format for visualization
+- `bsbolt/methylation_calls/*.txt` - Text format methylation calls
+- `bsbolt/aggregate_matrix/*_matrix.txt` - Cross-sample aggregated matrix
 
 **Quality Reports:**
 
-- `bismark/reports/*.txt` - Alignment and splitting reports
 - `fastp/*.html` - Read quality reports
 
 ### RASTAIR/TAPS Mode
