@@ -29,6 +29,19 @@ test-rastair: ${HOME}/.pixi/bin/pixi
 
 
 # BSbolt
+test-bsbolt-snapshot: ${HOME}/.pixi/bin/pixi
+	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
+		tests/bsbolt.nf.test \
+		--verbose \
+		--profile docker,bsbolt
+
+test-bsbolt-update-snapshot: ${HOME}/.pixi/bin/pixi
+	export NXF_FILE_ROOT=${PWD}; ${HOME}/.pixi/bin/pixi run nf-test test \
+		tests/bsbolt.nf.test \
+		--verbose \
+		--update-snapshot \
+		--profile docker,bsbolt
+
 test-bsbolt: ${HOME}/.pixi/bin/pixi
 	${HOME}/.pixi/bin/pixi run nextflow run main.nf \
 		-profile docker,bsbolt \

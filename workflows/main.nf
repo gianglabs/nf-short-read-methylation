@@ -52,7 +52,8 @@ workflow SHORT_READ_METHYLATION {
      - Subworkflows              : ${params.taps ? "RASTAIR" : "BSBOLT"}
      - Loaded genomes set        : ${params.genome ? params.genome : 'None'}
      - Reference Genome          : ${params.reference}
-     - Bismark Index             : ${params.bismark_index ?: 'None'}
+     - BSbolt Index              : ${params.bsbolt_index ?: 'None'}
+     - BWA-mem2 Index            : ${params.bwa2_index ?: 'None'}
      - Input Samplesheet         : ${params.input}
      - Output Directory          : ${params.outdir}
     ==============================================================================================================================

@@ -1,3 +1,5 @@
 sample,fastq_1,fastq_2,lane
-SRR389222,https://github.com/nf-core/test-datasets/raw/methylseq/testdata/SRR389222_sub3.fastq.gz,,L001,
+SRR389222_sub1,assets/input/fastq/SRR389222.fastq.gz,,L001,
+SRR389222_sub1,assets/input/fastq/SRR389222.fastq.gz,,L002,
+SRR389222_sub3,https://github.com/nf-core/test-datasets/raw/methylseq/testdata/SRR389222_sub3.fastq.gz,,L001,
 Ecoli_10K_methylated,https://github.com/nf-core/test-datasets/raw/methylseq/testdata/Ecoli_10K_methylated_R1.fastq.gz,https://github.com/nf-core/test-datasets/raw/methylseq/testdata/Ecoli_10K_methylated_R2.fastq.gz,L001

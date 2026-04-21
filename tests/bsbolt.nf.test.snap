@@ -1,0 +1,48 @@
+{
+    "bsbolt-fastq": {
+        "content": [
+            [
+                "bsbolt",
+                "bsbolt/aggregate_matrix",
+                "bsbolt/aggregate_matrix/aggregated_matrix.txt",
+                "bsbolt/alignment",
+                "bsbolt/alignment/Ecoli_10K_methylated.bam",
+                "bsbolt/alignment/SRR389222.bam",
+                "bsbolt/methylation_calls",
+                "bsbolt/methylation_calls/Ecoli_10K_methylated.CGmap.gz",
+                "bsbolt/methylation_calls/SRR389222.CGmap.gz",
+                "fastp",
+                "fastp/Ecoli_10K_methylated_L001_fastp.html",
+                "fastp/Ecoli_10K_methylated_L001_fastp.json",
+                "fastp/Ecoli_10K_methylated_L001_trimmed_1.fastq.gz",
+                "fastp/Ecoli_10K_methylated_L001_trimmed_2.fastq.gz",
+                "fastp/SRR389222_L001_fastp.html",
+                "fastp/SRR389222_L001_fastp.json",
+                "fastp/SRR389222_L001_trimmed_1.fastq.gz",
+                "merged_alignment",
+                "merged_alignment/Ecoli_10K_methylated.bam",
+                "merged_alignment/Ecoli_10K_methylated.bam.bai",
+                "merged_alignment/Ecoli_10K_methylated.cram",
+                "merged_alignment/Ecoli_10K_methylated.cram.crai",
+                "merged_alignment/SRR389222.bam",
+                "merged_alignment/SRR389222.bam.bai",
+                "merged_alignment/SRR389222.cram",
+                "merged_alignment/SRR389222.cram.crai",
+                "samtools",
+                "samtools/deduplicated",
+                "samtools/deduplicated/Ecoli_10K_methylated.dup.bam",
+                "samtools/deduplicated/Ecoli_10K_methylated.dup.bam.bai",
+                "samtools/deduplicated/SRR389222.dup.bam",
+                "samtools/deduplicated/SRR389222.dup.bam.bai"
+            ],
+            [
+                "aggregated_matrix.txt:md5,2f041f53f1a024335bdbd25e4d19fc75"
+            ]
+        ],
+        "timestamp": "2026-04-21T16:39:48.937262165",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}
